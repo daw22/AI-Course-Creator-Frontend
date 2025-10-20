@@ -1,13 +1,22 @@
 import { create } from "zustand";
 import { fetchEventSource } from "@microsoft/fetch-event-source"
 import useUserStore from "./user";
+import useCreationStore from "./creationState";
+import { Question } from "./creationState";
+import { format } from "path";
 
 const GRAPH_START_ENDPOINT = `${process.env.NEXT_PUBLIC_API_BASE_URL}/graph/start`
 const GRAPH_RESUME_ENDPOINT = `${process.env.NEXT_PUBLIC_API_BASE_URL}/graph/resume`
 
 const { getAccessToken, setAccessToken } = useUserStore.getState();
 
-const token = getAccessToken();
+const setDisplayMessage = useCreationStore.getState().setCurrentChatDisplay;
+const setCurrentState = useCreationStore.getState().setCurrentState;
+const setCourseTitle = useCreationStore.getState().setCourseTitle;
+const setPrerequisiteQuestions = useCreationStore.getState().setPrerequisiteQuestions;
+
+const abortController = new AbortController();
+
 type Checkpoint = {
     type: "CREATION" | "GENERATION";
     nodeName: string;
@@ -88,31 +97,85 @@ const useGraphHistoryStore = create<GraphHistoryState>((set, get) => ({
         }));
         // resume
     },
-    startGraph: (input: string) => {
+    startGraph: async (input: string) => {
+        const accessToken = getAccessToken();
+        if (!accessToken) {
+            set({ error: "No access token available" });
+            return;
+        }
         fetchEventSource(GRAPH_START_ENDPOINT, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`,
+                "Authorization": `Bearer ${accessToken}`,
             },
             body: JSON.stringify({ "answer": input }),
+            signal: abortController.signal,
             onmessage: (event) => {
-                console.log("Graph Start Event:", event.data);
-            },
-            onerror: (err) => {
-                //handdle refresh token if 401
-                if (err.status === 401) {
-                    const refreshed = refreshToken();
-                    if (refreshed) {
-                        console.log("Token refreshed, retrying request...");
-                        get().startGraph(input);
-                        return; // Retry the request
-                    } else {
-                        set({ error: "Session expired. Please log in again." });
-                        return;
+                console.log("Graph Start Event:", event);
+                // expect 3 types of events here 1- on_course_title_question 2-on_course_title_decided 3-on_prereqiesite_questions
+                let data = null
+                try{
+                    data = JSON.parse(event.data)
+                }catch(e){
+                    throw e
+                }
+                if (event.event == "on_course_title_question"){
+                    let question = data?.question || null;
+                    if (question) setDisplayMessage(question)
+                }
+                if (event.event == "on_course_title_decided") {
+                    const courseTitle = data?.course_title || null;
+                    if (courseTitle) setCourseTitle(courseTitle)
+                }
+                if (event.event == "on_prerequisite_questions"){
+                    const questions = data?.questions || null;
+                    let formatedquestions: Question[] = []
+                    if (questions) {
+                        questions.forEach((question: string) => {
+                            let newQuestion: Question = {
+                                question: question,
+                                choices: ["I am Good", "I need a refresher", " A targed Introduction", "Foundation lession"]
+                            }
+                            formatedquestions.push(newQuestion)
+                        })
+                        setPrerequisiteQuestions(formatedquestions);
+                        setCurrentState("prerequisites")
                     }
                 }
-                console.error("Graph Start Error:", err);
+            },
+            onerror: (err) => {
+                if (err instanceof Response) {
+                    // try to parse json
+                    let errorData = null;
+                    try{
+                        errorData = JSON.parse(err.body ? err.body.toString() : "{}");
+                    }catch(e){
+                        console.error("Failed to parse error response:", e);
+                    }
+                    if (err.status === 401 && errorData?.detail === "Invalid authentication credentials") {
+                        const refreshed = refreshToken();
+                        if (refreshed){
+                            abortController.abort();
+                            get().startGraph(input);
+                        }
+                        return;
+                    }else {
+                        throw err;
+                    }
+                }
+                if (err?.message?.includes("Expected content-type")) {
+                    console.warn("Got non-SSE response (likely JSON). Checking for expired token...");
+                    // retry here too
+                    const refreshed = refreshToken();
+                    if (refreshed){
+                        abortController.abort();
+                        get().startGraph(input);
+                    }
+                    return;
+                }
+                console.log("error:", err)
+                throw err
             }   
         });
     },

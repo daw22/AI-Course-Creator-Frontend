@@ -2,12 +2,14 @@
 import React, { use, useState } from "react";
 import useUserStore from "@/state/user";
 import useGraphHistoryStore from "@/state/graphHistory";
-import { start } from "repl";
+import useCreationStore from "@/state/creationState";
 
 export default function Chat() {
   const [input, setInput] = useState("");
   const user = useUserStore((state) => state.user);
   const { startGraph } = useGraphHistoryStore();
+  
+  const displayMessage = useCreationStore((state) => state.currentChatDisplay)
 
   const [displayedQuestion, setDisplayedQuestion] = useState(
     `Hey ${user?.firstName}, What do you want to learn about today?`,
@@ -44,7 +46,7 @@ export default function Chat() {
               maxWidth: "100%",
             }}
           >
-            {displayedQuestion}
+            {displayMessage}
           </h1>
         </div>
 

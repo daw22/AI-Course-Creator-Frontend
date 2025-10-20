@@ -1,40 +1,14 @@
+"use client";
 import React, { useState } from "react";
+import useCreationStore from "@/state/creationState";
 
 export default function QuizContainer(props: { questions: any[] }) {
   const [selectedChoice, setSelectedChoice] = useState<number | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [direction, setDirection] = useState<"left" | "right" | null>(null);
 
-  const questions = [
-    {
-      question:
-        "What is the capital of France What is the capital of France What is the capital of FranceWhat is the capital of FranceWhat is the capital of France?",
-      choices: [
-        { label: "A", text: "London" },
-        { label: "B", text: "Paris" },
-        { label: "C", text: "Berlin" },
-        { label: "D", text: "Madrid" },
-      ],
-    },
-    {
-      question:
-        "Which planet is known as the Red Planet and is often a focus of space exploration missions due to its potential for hosting microbial life?",
-      choices: [
-        { label: "A", text: "Venus" },
-        { label: "B", text: "Mars" },
-        { label: "C", text: "Jupiter" },
-        { label: "D", text: "Saturn" },
-      ],
-    },
-    {
-      question: "What is 2 + 2?",
-      choices: [
-        { label: "A", text: "3" },
-        { label: "B", text: "4" },
-        { label: "C", text: "5" },
-      ],
-    },
-  ];
+  const questions = useCreationStore((state) => state.prerequisteQuestions);
+  const addAnswer = useCreationStore((state) => state.addAnswer);
 
   const question = questions[currentQuestion];
 
@@ -46,10 +20,16 @@ export default function QuizContainer(props: { questions: any[] }) {
     if (currentQuestion < questions.length - 1 && selectedChoice !== null) {
       setDirection("right");
       setTimeout(() => {
+        addAnswer(currentQuestion, questions[currentQuestion].choices[selectedChoice]);
         setCurrentQuestion(currentQuestion + 1);
         setSelectedChoice(null);
         setDirection(null);
       }, 300);
+    }
+
+    if (currentQuestion == questions.length -1 ) {
+      // finish condition
+
     }
   };
 
@@ -117,7 +97,10 @@ export default function QuizContainer(props: { questions: any[] }) {
             >
               <div className="flex items-start gap-3">
                 <span className="text-white font-light text-lg w-6 flex-shrink-0">
-                  {choice.label}
+                  {index == 0 && 'A'}
+                  {index == 1 && 'C'}
+                  {index == 2 && 'B'}
+                  {index == 3 && 'D'}
                 </span>
                 <span
                   className="text-white font-light text-base"
@@ -127,7 +110,7 @@ export default function QuizContainer(props: { questions: any[] }) {
                     hyphens: "auto",
                   }}
                 >
-                  {choice.text}
+                  {choice}
                 </span>
               </div>
             </button>

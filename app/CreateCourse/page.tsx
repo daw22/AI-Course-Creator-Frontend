@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import ProgressIndicator from "@/components/progressIndicator";
 import QuizContainer from "@/components/quiz";
 import Chat from "@/components/chat";
+import useCreationStore from "@/state/creationState";
 
 const quizQuestions = [
   {
@@ -21,13 +22,13 @@ const quizQuestions = [
 ];
 
 export default function CreateCourse() {
-  const [progress, setProgress] = useState("title");
-  
+  const currentState = useCreationStore((state) => state.currentState)
+  const steps = ["title", "prerequisites", "target", "outline"]; 
   return (
     <div className="flex flex-col items-center justify-start h-[calc(100vh - 16)] text-white px-4 pt-20 gap-12">
-      <ProgressIndicator currentStep={0} />
-      {progress === "title" && <Chat />}
-      {progress === "prerequisites" && (
+      <ProgressIndicator currentStep={steps.indexOf(currentState)} />
+      {currentState === "title" && <Chat />}
+      {currentState === "prerequisites" && (
         <QuizContainer
           questions={quizQuestions}   
         />
