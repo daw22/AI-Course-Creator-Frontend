@@ -1,103 +1,213 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import React from "react";
+import { ArrowRight } from "lucide-react";
+import { useRouter } from "next/navigation";
+import useUserStore from "@/state/user";
+import usePortalStore from "@/state/portal";
+
+export default function HomePage() {
+  const router = useRouter();
+  const user = useUserStore((state) => state.user);
+  const open = usePortalStore((state) => state.openPortal);
+
+  const features = [
+    {
+      title: "AI-Generated Content",
+      description: "Create comprehensive courses in seconds with advanced AI",
+    },
+    {
+      title: "Personalized Learning",
+      description: "Courses adapt to your learning pace and style",
+    },
+    {
+      title: "Interactive Quizzes",
+      description: "Test your knowledge with AI-crafted quiz questions",
+    },
+    {
+      title: "Progress Tracking",
+      description: "Monitor your learning journey with detailed analytics",
+    },
+    {
+      title: "Expert Curriculum",
+      description: "Curriculum designed by AI experts and professionals",
+    },
+    {
+      title: "Instant Access",
+      description: "Start learning immediately after course creation",
+    },
+  ];
+  const toCreateCourse = () => {
+    if (user) {
+      router.push("/CreateCourse");
+    } else {
+      // open sign in modal
+      open("signIn");
+    }
+  };
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <div className="min-h-screen bg-black text-white">
+      {/* Hero Section */}
+      <section className="min-h-screen flex items-center justify-center px-4 pt-20 pb-20">
+        <div className="max-w-4xl mx-auto text-center">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-light leading-tight mb-6">
+            Create AI-Powered Courses Tailored to Your Level
+          </h1>
+          <p className="text-lg sm:text-xl text-gray-400 mb-12 max-w-2xl mx-auto font-light">
+            Generate personalized learning courses in minutes. From beginner to
+            expert, create the perfect curriculum for any topic.
+          </p>
+          <button
+            onClick={toCreateCourse}
+            className="px-8 sm:px-10 py-4 border border-white text-white font-light text-sm sm:text-base tracking-widest uppercase hover:bg-blue-900 hover:text-white transition-all duration-300 ease-out active:scale-95 flex items-center gap-3 mx-auto group"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            Create Course
+            <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+          </button>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+      </section>
+
+      {/* Features Section */}
+      <section className="px-4 py-20 bg-black">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-light text-center mb-16">
+            Why Choose Our Course Generator
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {features.map((feature, index) => (
+              <div
+                key={index}
+                className="p-8 border border-gray-800 hover:border-gray-600 transition-all duration-300 group cursor-pointer"
+              >
+                <h3 className="text-xl font-light text-white mb-4 group-hover:text-gray-200 transition-colors">
+                  {feature.title}
+                </h3>
+                <p className="text-gray-400 font-light text-sm leading-relaxed">
+                  {feature.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="px-4 py-20 bg-black border-t border-gray-800">
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-light mb-8">
+            Ready to Start Learning?
+          </h2>
+          <p className="text-gray-400 text-lg mb-12 font-light">
+            Create your first AI-generated course today and experience personalized learning like never before.
+          </p>
+          <button
+            onClick={toCreateCourse}
+            className="px-8 sm:px-10 py-4 border border-white text-white font-light text-sm sm:text-base tracking-widest uppercase hover:bg-blue-900 hover:text-white transition-all duration-300 ease-out active:scale-95 flex items-center gap-3 mx-auto group"
+          >
+            Get Started Now
+            <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+          </button>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="px-4 py-12 bg-black border-t border-gray-800">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-12">
+            <div>
+              <h4 className="text-white font-light text-lg mb-4">Product</h4>
+              <ul className="space-y-2 text-gray-400 font-light text-sm">
+                <li>
+                  <a href="#" className="hover:text-white transition-colors">
+                    Features
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white transition-colors">
+                    Pricing
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white transition-colors">
+                    FAQ
+                  </a>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-white font-light text-lg mb-4">Company</h4>
+              <ul className="space-y-2 text-gray-400 font-light text-sm">
+                <li>
+                  <a href="#" className="hover:text-white transition-colors">
+                    About
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white transition-colors">
+                    Blog
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white transition-colors">
+                    Contact
+                  </a>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-white font-light text-lg mb-4">Legal</h4>
+              <ul className="space-y-2 text-gray-400 font-light text-sm">
+                <li>
+                  <a href="#" className="hover:text-white transition-colors">
+                    Privacy
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white transition-colors">
+                    Terms
+                  </a>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-white font-light text-lg mb-4">Follow</h4>
+              <ul className="space-y-2 text-gray-400 font-light text-sm">
+                <li>
+                  <a href="#" className="hover:text-white transition-colors">
+                    Twitter
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white transition-colors">
+                    LinkedIn
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div className="border-t border-gray-800 pt-8 flex flex-col sm:flex-row justify-between items-center text-gray-400 font-light text-sm">
+            <p>&copy; 2025 AI Course Generator. All rights reserved.</p>
+            <p>Crafted for learners everywhere</p>
+          </div>
+        </div>
       </footer>
+
+      <style jsx global>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+        }
+
+        body {
+          margin: 0;
+          padding: 0;
+          background-color: #000000;
+        }
+      `}</style>
     </div>
   );
 }
+
+
+
