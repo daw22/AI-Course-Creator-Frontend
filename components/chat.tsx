@@ -3,6 +3,7 @@ import React, { use, useState } from "react";
 import useUserStore from "@/state/user";
 import useGraphHistoryStore from "@/state/graphHistory";
 import useCreationStore from "@/state/creationState";
+import LoadingMessage from "./loadingMessage";
 
 export default function Chat() {
   const [input, setInput] = useState("");
@@ -15,6 +16,8 @@ export default function Chat() {
   const messageCount = useCreationStore((state) => state.messageCount);
   const incrementMessageCount = useCreationStore((state) => state.incrementMessageCount);
   const threadId = useCreationStore((state) => state.threadId);
+  const setLoadingMessage = useCreationStore((state) => state.setLoadingMessage);
+  const loadingMessage = useCreationStore((state) => state.loadingMessage);
 
   const [displayedQuestion, setDisplayedQuestion] = useState(
     `Hey ${user?.firstName}, What do you want to learn about today?`,
@@ -27,11 +30,15 @@ export default function Chat() {
     if (messageCount === 0) {
       startGraph(input.trim());
       incrementMessageCount();
+      setInput('');
+      setLoadingMessage("Starting course generator")
     } else {
       //resume the graph
       if (threadId) {
         resumeGraph(input.trim(), threadId, 'course_title_response');
         incrementMessageCount();
+        setInput('');
+        setLoadingMessage("Loading next step in course creation")
       }
     }
   };
@@ -48,7 +55,7 @@ export default function Chat() {
       {/* Main Container */}
       <div className="w-full max-w-2xl">
         {/* Question Text */}
-        <div className="mb-12">
+        {!loadingMessage && <div className="mb-12">
           <h1
             className={`text-2xl sm:text-lg md:text-xl lg:text-2xl font-light text-white text-center leading-tight transition-all duration-300 ${
               isTransitioning ? "opacity-0" : "opacity-100"
@@ -62,7 +69,8 @@ export default function Chat() {
           >
             {displayMessage}
           </h1>
-        </div>
+        </div>}
+         {loadingMessage && <LoadingMessage message={loadingMessage}/>}
 
         {/* Input Form */}
         <form onSubmit={handleSubmit} className="w-full">

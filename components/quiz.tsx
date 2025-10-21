@@ -1,8 +1,10 @@
 "use client";
 import React, { useState } from "react";
 import useCreationStore from "@/state/creationState";
+import useGraphHistoryStore from "@/state/graphHistory";
+import { collectRoutesUsingEdgeRuntime } from "next/dist/build/utils";
 
-export default function QuizContainer(props: { questions: any[] }) {
+export default function QuizContainer() {
   const [selectedChoice, setSelectedChoice] = useState<number | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [direction, setDirection] = useState<"left" | "right" | null>(null);
@@ -11,6 +13,9 @@ export default function QuizContainer(props: { questions: any[] }) {
   const addAnswer = useCreationStore((state) => state.addAnswer);
   const prerequisitesAnswers = useCreationStore((state) => state.prerequisitesAnswers);
   const threadId = useCreationStore((state) => state.threadId);
+  const setLoadingMessage = useCreationStore((state) => state.setLoadingMessage);
+
+  const resumeGraph = useGraphHistoryStore((state) => state.resumeGraph);
 
   const question = questions[currentQuestion];
 
@@ -31,8 +36,17 @@ export default function QuizContainer(props: { questions: any[] }) {
 
     if (currentQuestion == questions.length -1 ) {
       // finish condition -> send answers
-      const answersArray = prerequisitesAnswers.values();
-      const data = {response: Array.from(answersArray), threadId: threadId, resumeFrom: ''};
+      if (selectedChoice === null) return;
+      addAnswer(currentQuestion, questions[currentQuestion].choices[selectedChoice]);
+      setTimeout(() => {
+        const answersArray = prerequisitesAnswers.values();
+        //console.log("Submitting answers: ", Array.from(answersArray), "threadId: ", threadId);
+        resumeGraph(Array.from(answersArray), threadId ?? '', 'get_answer');
+      }, 300);
+      setLoadingMessage("Submitting your answers...");
+      setTimeout(() => {
+        setLoadingMessage("Assessing course targets");
+      }, 1500);
     }
   };
 

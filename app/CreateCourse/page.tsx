@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
 import ProgressIndicator from "@/components/progressIndicator";
 import QuizContainer from "@/components/quiz";
 import Chat from "@/components/chat";
+import CourseTarget from "@/components/courseTarget";
 import useCreationStore from "@/state/creationState";
 
 const quizQuestions = [
@@ -29,9 +29,10 @@ export default function CreateCourse() {
       <ProgressIndicator currentStep={steps.indexOf(currentState)} />
       {currentState === "title" && <Chat />}
       {currentState === "prerequisites" && (
-        <QuizContainer
-          questions={quizQuestions}   
-        />
+        <QuizContainer />
+      )}
+      {currentState === "target" && (
+        <CourseTarget />
       )}
     </div>
   )

@@ -15,6 +15,7 @@ const setCurrentState = useCreationStore.getState().setCurrentState;
 const setCourseTitle = useCreationStore.getState().setCourseTitle;
 const setPrerequisiteQuestions = useCreationStore.getState().setPrerequisiteQuestions;
 const setThreadId = useCreationStore.getState().setThreadId;
+const setLoadingMessage = useCreationStore.getState().setLoadingMessage;
 
 const abortController = new AbortController();
 
@@ -125,6 +126,7 @@ const useGraphHistoryStore = create<GraphHistoryState>((set, get) => ({
                     let question = data?.question || null;
                     if (question) setDisplayMessage(question);
                     setThreadId(data?.config.configurable.thread_id);
+                    setLoadingMessage(null);
                 }
                 if (event.event == "on_course_title_decided") {
                     const courseTitle = data?.course_title || null;
@@ -133,6 +135,16 @@ const useGraphHistoryStore = create<GraphHistoryState>((set, get) => ({
                     get().createCourseHistory(courseTitle, data?.config.configurable.thread_id);
                     const checkpoint: Checkpoint = {type: "CREATION", nodeName: "Course Title Decided", checkpointId: data?.config?.configurable.checkpoint_id, stateSnapshot: data?.course_title}
                     get().addCheckpoint(data?.config.configurable.thread_id, checkpoint);
+                    setLoadingMessage(`Course title decided: ${courseTitle}`);
+                    if (data?.config?.configurable?.thread_id){
+                        setThreadId(data?.config?.configurable.thread_id);
+                    } else {
+                        throw new Error("No thread ID in response");
+                    }
+                    // change loading message after short delay
+                    setTimeout(() => {
+                        setLoadingMessage("Generating prerequisites questions...");
+                    }, 1500);
                 }
                 if (event.event == "on_prerequisite_questions"){
                     const questions = data?.questions || null;
@@ -189,6 +201,7 @@ const useGraphHistoryStore = create<GraphHistoryState>((set, get) => ({
         });
     },
     resumeGraph: (response: string | string[], threadId: string, resumeFrom: string) => {
+        console.log("Resuming graph from:", resumeFrom, "with response:", response);
         const accessToken = getAccessToken();
         fetchEventSource(GRAPH_RESUME_ENDPOINT, {
             method: "POST",
@@ -209,6 +222,12 @@ const useGraphHistoryStore = create<GraphHistoryState>((set, get) => ({
                 if (event.event == "on_course_title_question"){
                     let question = data?.question || null;
                     if (question) setDisplayMessage(question)
+                    setLoadingMessage(null);
+                    if (data?.config?.configurable?.thread_id){
+                        setThreadId(data?.config?.configurable?.thread_id);
+                    } else {
+                        throw new Error("No thread ID in response");
+                    }
                 }
                 if (event.event == "on_course_title_decided") {
                     const courseTitle = data?.course_title || null;
@@ -217,6 +236,11 @@ const useGraphHistoryStore = create<GraphHistoryState>((set, get) => ({
                     get().createCourseHistory(courseTitle, data?.config.configurable.thread_id);
                     const checkpoint: Checkpoint = {type: "CREATION", nodeName: "Course Title Decided", checkpointId: data?.config?.configurable.checkpoint_id, stateSnapshot: data?.course_title}
                     get().addCheckpoint(data?.config.configurable.thread_id, checkpoint);
+                    setLoadingMessage(`Course title decided: ${courseTitle}`);
+                    // change loading message after short delay
+                    setTimeout(() => {
+                        setLoadingMessage("Generating prerequisites questions...");
+                    }, 1500);
                 }
                 if (event.event == "on_prerequisite_questions"){
                     const questions = data?.questions || null;
@@ -236,7 +260,22 @@ const useGraphHistoryStore = create<GraphHistoryState>((set, get) => ({
                         get().addCheckpoint(data?.config.configurable.thread_id, checkpoint);
                     }
                 }
-                if (event.event == "on_course_target_suggestion") {}
+                if (event.event == "on_course_target_suggestion") {
+                    const targets = data?.course_target_suggestion || null;
+                    if (targets) {
+                        setLoadingMessage(null);
+                        setCurrentState("target");
+                        // add checkpoint
+                        const checkpoint: Checkpoint = {type: "CREATION", nodeName: "Course Target Suggested", checkpointId: data?.config?.configurable.checkpoint_id, stateSnapshot: JSON.stringify(data?.course_target_suggestion)}
+                        get().addCheckpoint(data?.config.configurable.thread_id, checkpoint);
+                    }
+                }
+                if (event.event == "on_course_target_picked"){
+                    setLoadingMessage("Generating course outline...");
+                    // add checkpoint
+                    const checkpoint: Checkpoint = {type: "CREATION", nodeName: "Course Target Picked", checkpointId: data?.config?.configurable.checkpoint_id, stateSnapshot: data?.course_target_picked}
+                    get().addCheckpoint(data?.config.configurable.thread_id, checkpoint);
+                }
                 if (event.event == "on_course_outline_generated") {}
                 if (event.event == "on_course_creation_started") {}
                 if (event.event == "on_quiz_created") {}

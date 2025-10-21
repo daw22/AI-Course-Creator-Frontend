@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import useUserStore from "./user";
-import { Loader2 } from 'lucide-react';
 
 export interface Question {
     question: string;
@@ -9,13 +8,14 @@ export interface Question {
 
 type CourseTarget = {
     targets: string[];
-    recomended: number
+    recommended: number
 }
 
 type CreationState = {
     currentState: string;
     threadId: string | null;
     currentChatDisplay: string | null;
+    loadingMessage: string | null;
     messageCount: number;
     prerequisteQuestions: Question[];
     prerequisitesAnswers: Map<number, string>
@@ -26,6 +26,7 @@ type CreationState = {
 
     //actoins
     setCurrentChatDisplay: (message: string) => void;
+    setLoadingMessage: (message: string | null) => void;
     setCurrentState: (state: string) => void;
     setThreadId: (id: string) => void;
     setPrerequisiteQuestions: (questions: Question[]) => void;
@@ -39,6 +40,7 @@ const useCreationStore = create<CreationState>((set, get) => ({
     currentState: "title",
     threadId: null,
     currentChatDisplay: `Hey ${useUserStore.getState().user?.firstName || ''}, What would you like to learn about today?`,
+    loadingMessage: null,
     messageCount: 0,
     prerequisteQuestions: [],
     prerequisitesAnswers: new Map(),
@@ -49,6 +51,9 @@ const useCreationStore = create<CreationState>((set, get) => ({
     //actions
     setCurrentChatDisplay: (message: string) => {
         set({currentChatDisplay: message})
+    },
+    setLoadingMessage: (message: string | null) => {
+        set({loadingMessage: message})
     },
     setThreadId: (id: string) => {
         set({threadId: id})
