@@ -14,6 +14,7 @@ const setDisplayMessage = useCreationStore.getState().setCurrentChatDisplay;
 const setCurrentState = useCreationStore.getState().setCurrentState;
 const setCourseTitle = useCreationStore.getState().setCourseTitle;
 const setPrerequisiteQuestions = useCreationStore.getState().setPrerequisiteQuestions;
+const setThreadId = useCreationStore.getState().setThreadId;
 
 const abortController = new AbortController();
 
@@ -122,11 +123,12 @@ const useGraphHistoryStore = create<GraphHistoryState>((set, get) => ({
                 }
                 if (event.event == "on_course_title_question"){
                     let question = data?.question || null;
-                    if (question) setDisplayMessage(question)
+                    if (question) setDisplayMessage(question);
+                    setThreadId(data?.config.configurable.thread_id);
                 }
                 if (event.event == "on_course_title_decided") {
                     const courseTitle = data?.course_title || null;
-                    if (courseTitle) setCourseTitle(courseTitle)
+                    if (courseTitle) setCourseTitle(courseTitle);
                     // create course history
                     get().createCourseHistory(courseTitle, data?.config.configurable.thread_id);
                     const checkpoint: Checkpoint = {type: "CREATION", nodeName: "Course Title Decided", checkpointId: data?.config?.configurable.checkpoint_id, stateSnapshot: data?.course_title}
@@ -187,15 +189,73 @@ const useGraphHistoryStore = create<GraphHistoryState>((set, get) => ({
         });
     },
     resumeGraph: (response: string | string[], threadId: string, resumeFrom: string) => {
+        const accessToken = getAccessToken();
         fetchEventSource(GRAPH_RESUME_ENDPOINT, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
+                "Authorization": `Bearer ${accessToken}`,
             },
-            body: JSON.stringify({ response, threadId, resumeFrom }),
+            body: JSON.stringify({ response, thread_id: threadId, resume_from: resumeFrom }),
             onmessage: (event) => {
-                console.log("Graph Resume Event:", event.data);
+                console.log("Graph Resume Event:", event);
+                // handle resume events here
+                let data = null
+                try{
+                    data = JSON.parse(event.data)
+                }catch(e){
+                    throw e
+                }
+                if (event.event == "on_course_title_question"){
+                    let question = data?.question || null;
+                    if (question) setDisplayMessage(question)
+                }
+                if (event.event == "on_course_title_decided") {
+                    const courseTitle = data?.course_title || null;
+                    if (courseTitle) setCourseTitle(courseTitle)
+                    // create course history
+                    get().createCourseHistory(courseTitle, data?.config.configurable.thread_id);
+                    const checkpoint: Checkpoint = {type: "CREATION", nodeName: "Course Title Decided", checkpointId: data?.config?.configurable.checkpoint_id, stateSnapshot: data?.course_title}
+                    get().addCheckpoint(data?.config.configurable.thread_id, checkpoint);
+                }
+                if (event.event == "on_prerequisite_questions"){
+                    const questions = data?.questions || null;
+                    let formatedquestions: Question[] = []
+                    if (questions) {
+                        questions.forEach((question: string) => {
+                            let newQuestion: Question = {
+                                question: question,
+                                choices: ["I am Good", "I need a refresher", " A targeted Introduction", "Foundational lesson"]
+                            }
+                            formatedquestions.push(newQuestion)
+                        })
+                        setPrerequisiteQuestions(formatedquestions);
+                        setCurrentState("prerequisites")
+                        // add checheckpoint
+                        const checkpoint: Checkpoint = {type: "CREATION", nodeName: "Prerequisite Questions", checkpointId: data?.config?.configurable.checkpoint_id, stateSnapshot: JSON.stringify(questions)}
+                        get().addCheckpoint(data?.config.configurable.thread_id, checkpoint);
+                    }
+                }
+                if (event.event == "on_course_target_suggestion") {}
+                if (event.event == "on_course_outline_generated") {}
+                if (event.event == "on_course_creation_started") {}
+                if (event.event == "on_quiz_created") {}
+                if (event.event == "on_quiz_result_stored") {}
             },
+            onerror: (err) => {
+                if (err?.message?.includes("Expected content-type")) {
+                    console.warn("Got non-SSE response (likely JSON). Checking for expired token...");
+                    // retry here too
+                    const refreshed = refreshToken();
+                    if (refreshed){
+                        abortController.abort();
+                        get().resumeGraph(response, threadId, resumeFrom);
+                    }
+                    return;
+                }
+                console.log("error:", err)
+                throw err
+            }
         });
     },
 }));

@@ -7,9 +7,14 @@ import useCreationStore from "@/state/creationState";
 export default function Chat() {
   const [input, setInput] = useState("");
   const user = useUserStore((state) => state.user);
-  const { startGraph } = useGraphHistoryStore();
-  
+
+  const startGraph = useGraphHistoryStore((state) => state.startGraph);
+  const resumeGraph = useGraphHistoryStore((state) => state.resumeGraph);
+
   const displayMessage = useCreationStore((state) => state.currentChatDisplay)
+  const messageCount = useCreationStore((state) => state.messageCount);
+  const incrementMessageCount = useCreationStore((state) => state.incrementMessageCount);
+  const threadId = useCreationStore((state) => state.threadId);
 
   const [displayedQuestion, setDisplayedQuestion] = useState(
     `Hey ${user?.firstName}, What do you want to learn about today?`,
@@ -19,7 +24,16 @@ export default function Chat() {
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     // get the last event
-    startGraph(input.trim());
+    if (messageCount === 0) {
+      startGraph(input.trim());
+      incrementMessageCount();
+    } else {
+      //resume the graph
+      if (threadId) {
+        resumeGraph(input.trim(), threadId, 'course_title_response');
+        incrementMessageCount();
+      }
+    }
   };
 
   const handleKeyDown = (e: any) => {

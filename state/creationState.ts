@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import useUserStore from "./user";
-import { MonitorPause } from "lucide-react";
+import { Loader2 } from 'lucide-react';
 
 export interface Question {
     question: string;
@@ -14,7 +14,9 @@ type CourseTarget = {
 
 type CreationState = {
     currentState: string;
+    threadId: string | null;
     currentChatDisplay: string | null;
+    messageCount: number;
     prerequisteQuestions: Question[];
     prerequisitesAnswers: Map<number, string>
     courseTargets: CourseTarget | null;
@@ -25,15 +27,19 @@ type CreationState = {
     //actoins
     setCurrentChatDisplay: (message: string) => void;
     setCurrentState: (state: string) => void;
+    setThreadId: (id: string) => void;
     setPrerequisiteQuestions: (questions: Question[]) => void;
     setCourseTitle: (title: string) => void;
     addAnswer: (index: number, answer: string) => void;
     setSelectedTarget: (index: number) => void;
+    incrementMessageCount: () => void;
 }
 
 const useCreationStore = create<CreationState>((set, get) => ({
     currentState: "title",
+    threadId: null,
     currentChatDisplay: `Hey ${useUserStore.getState().user?.firstName || ''}, What would you like to learn about today?`,
+    messageCount: 0,
     prerequisteQuestions: [],
     prerequisitesAnswers: new Map(),
     courseTargets: null,
@@ -44,7 +50,12 @@ const useCreationStore = create<CreationState>((set, get) => ({
     setCurrentChatDisplay: (message: string) => {
         set({currentChatDisplay: message})
     },
-
+    setThreadId: (id: string) => {
+        set({threadId: id})
+    },
+    incrementMessageCount: () => {
+        set({messageCount: get().messageCount + 1})
+    },
     setCurrentState: (state: string) => {
         set({currentState: state})
     },
