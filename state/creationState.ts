@@ -18,6 +18,7 @@ type CreationState = {
     prerequisteQuestions: Question[];
     prerequisitesAnswers: Map<number, string>
     courseTargets: CourseTarget | null;
+    selectedTarget: number | null;
     courseTitle: string | null;
     courseOutline: string | null;
 
@@ -27,6 +28,7 @@ type CreationState = {
     setPrerequisiteQuestions: (questions: Question[]) => void;
     setCourseTitle: (title: string) => void;
     addAnswer: (index: number, answer: string) => void;
+    setSelectedTarget: (index: number) => void;
 }
 
 const useCreationStore = create<CreationState>((set, get) => ({
@@ -37,6 +39,7 @@ const useCreationStore = create<CreationState>((set, get) => ({
     courseTargets: null,
     courseOutline: null,
     courseTitle: null,
+    selectedTarget: null,
     //actions
     setCurrentChatDisplay: (message: string) => {
         set({currentChatDisplay: message})
@@ -56,6 +59,9 @@ const useCreationStore = create<CreationState>((set, get) => ({
         currentMap.set(index, answer);
         set({prerequisitesAnswers: currentMap})
     },
+    setSelectedTarget(index: number) {
+        set({selectedTarget: index})
+    }
 }))
 
 export default useCreationStore;

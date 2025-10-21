@@ -9,6 +9,7 @@ export default function QuizContainer(props: { questions: any[] }) {
 
   const questions = useCreationStore((state) => state.prerequisteQuestions);
   const addAnswer = useCreationStore((state) => state.addAnswer);
+  const prerequisitesAnswers = useCreationStore((state) => state.prerequisitesAnswers);
 
   const question = questions[currentQuestion];
 
@@ -28,8 +29,9 @@ export default function QuizContainer(props: { questions: any[] }) {
     }
 
     if (currentQuestion == questions.length -1 ) {
-      // finish condition
-
+      // finish condition -> send answers
+      const answersArray = prerequisitesAnswers.values();
+      
     }
   };
 

@@ -25,14 +25,14 @@ type Checkpoint = {
 }
 
 type CourseHistory = {
-    courseId: string;
+    courseTitle: string | null;
     threadId: string;
     checkpoints: Checkpoint[];
 }
 
 type GraphHistoryState = {
     history: CourseHistory[];
-    createCourseHistory: (courseId: string, threadId: string) => void;
+    createCourseHistory: (courseTitle: string, threadId: string) => void;
     addCheckpoint: (threadId: string, checkpoint: Checkpoint) => void;
     getCourseHistory: (threadId: string) => CourseHistory | null;
     deleteCourseHistory: (threadId: string) => void;
@@ -45,9 +45,9 @@ type GraphHistoryState = {
 const useGraphHistoryStore = create<GraphHistoryState>((set, get) => ({
     history: [],
     error: null,
-    createCourseHistory: (courseId: string, threadId: string) => {
+    createCourseHistory: (courseTitle: string, threadId: string) => {
         set((state) => ({
-            history: [...state.history, { courseId, threadId, checkpoints: [] }],
+            history: [...state.history, { courseTitle, threadId, checkpoints: [] }],
         }));
     },
     addCheckpoint: (threadId: string, checkpoint: Checkpoint) => {
@@ -127,6 +127,10 @@ const useGraphHistoryStore = create<GraphHistoryState>((set, get) => ({
                 if (event.event == "on_course_title_decided") {
                     const courseTitle = data?.course_title || null;
                     if (courseTitle) setCourseTitle(courseTitle)
+                    // create course history
+                    get().createCourseHistory(courseTitle, data?.config.configurable.thread_id);
+                    const checkpoint: Checkpoint = {type: "CREATION", nodeName: "Course Title Decided", checkpointId: data?.config?.configurable.checkpoint_id, stateSnapshot: data?.course_title}
+                    get().addCheckpoint(data?.config.configurable.thread_id, checkpoint);
                 }
                 if (event.event == "on_prerequisite_questions"){
                     const questions = data?.questions || null;
@@ -135,12 +139,15 @@ const useGraphHistoryStore = create<GraphHistoryState>((set, get) => ({
                         questions.forEach((question: string) => {
                             let newQuestion: Question = {
                                 question: question,
-                                choices: ["I am Good", "I need a refresher", " A targed Introduction", "Foundation lession"]
+                                choices: ["I am Good", "I need a refresher", " A targeted Introduction", "Foundational lesson"]
                             }
                             formatedquestions.push(newQuestion)
                         })
                         setPrerequisiteQuestions(formatedquestions);
                         setCurrentState("prerequisites")
+                        // add checheckpoint
+                        const checkpoint: Checkpoint = {type: "CREATION", nodeName: "Prerequisite Questions", checkpointId: data?.config?.configurable.checkpoint_id, stateSnapshot: JSON.stringify(questions)}
+                        get().addCheckpoint(data?.config.configurable.thread_id, checkpoint);
                     }
                 }
             },
