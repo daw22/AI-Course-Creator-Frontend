@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import useCreationStore from "@/state/creationState";
 import useGraphHistoryStore from "@/state/graphHistory";
+import LoadingMessage from "./loadingMessage";
 
 export default function CourseTarget() {
   const [selectedChoice, setSelectedChoice] = useState<number | null>(null);
@@ -11,6 +12,7 @@ export default function CourseTarget() {
   const threadId = useCreationStore((state) => state.threadId);
   const setLoadingMessage = useCreationStore((state) => state.setLoadingMessage);
   const loadingMessage = useCreationStore((state) => state.loadingMessage);
+  const setSelectedTarget = useCreationStore((state) => state.setSelectedTarget);
 
   const resumeGraph = useGraphHistoryStore((state) => state.resumeGraph);
 
@@ -22,8 +24,9 @@ export default function CourseTarget() {
   const handleSubmit = () => {
     setLoadingMessage("Submitting your course target...");
     if (selectedChoice !== null) {
+      setSelectedTarget(selectedChoice);
       resumeGraph(
-        targets?.targets[selectedChoice] || "",
+        selectedChoice,
         threadId ?? "",
         "get_course_target"
       );
@@ -49,13 +52,9 @@ export default function CourseTarget() {
           >
             Pick a target for this course, This will help us tailor the course content to your needs.
           </h1>
-          {loadingMessage && (
-            <div className="text-center text-gray-400 font-light mt-4">
-              {loadingMessage}
-            </div>
-          )}
+          {loadingMessage && <LoadingMessage message={loadingMessage} />}
         </div>
-
+        
         {/* Choices Grid */}
         <div
           className="flex flex-col gap-4 mb-12"
@@ -64,13 +63,13 @@ export default function CourseTarget() {
             <button
               key={index}
               onClick={() => handleChoiceSelect(index)}
-              className={`relative p-2 border-2 text-left transition-all duration-200 ease-out active:scale-95 ${
+              className={`p-1 border-1 text-left transition-all duration-200 ease-out active:scale-95 ${
                 selectedChoice === index
                   ? "border-white bg-blue-900 bg-opacity-5"
-                  : "border-gray-600 hover:border-white"
-              }`}
+                  : "border-gray-600 hover:border-white"}`
+                }
             >
-              <div className="flex items-start gap-3">
+              <div className="flex items-start gap-3 m-2">
                 <span
                   className="text-white font-light text-base"
                   style={{
@@ -82,9 +81,6 @@ export default function CourseTarget() {
                   {target}
                 </span>
               </div>
-              <div className="absolute top-2 right-2 text-sm text-green-400">
-                {index === targets.recommended ? "Suggested" : ""}
-              </div>
             </button>
           ))}
         </div>
@@ -92,7 +88,7 @@ export default function CourseTarget() {
         <div className="flex justify-center">
           <button
             onClick={handleSubmit}
-            disabled={selectedChoice === null}
+            disabled={selectedChoice === null || loadingMessage !== null}
             className="px-8 py-3 border border-white text-white font-light text-sm tracking-widest uppercase hover:bg-blue-900 hover:text-white transition-all duration-300 ease-out active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Submit

@@ -11,6 +11,16 @@ type CourseTarget = {
     recommended: number
 }
 
+type CourseOutline = {
+    chapter_title: string;
+    chapter_number: number;
+    chapter_target?: string;
+    subtopics: {
+        subtopic_title: string;
+        subtopic_target?: string;
+    }[];
+}[];
+
 type CreationState = {
     currentState: string;
     threadId: string | null;
@@ -22,9 +32,9 @@ type CreationState = {
     courseTargets: CourseTarget | null;
     selectedTarget: number | null;
     courseTitle: string | null;
-    courseOutline: string | null;
+    courseOutline: CourseOutline | null;
 
-    //actoins
+    //actions
     setCurrentChatDisplay: (message: string) => void;
     setLoadingMessage: (message: string | null) => void;
     setCurrentState: (state: string) => void;
@@ -32,11 +42,14 @@ type CreationState = {
     setPrerequisiteQuestions: (questions: Question[]) => void;
     setCourseTitle: (title: string) => void;
     addAnswer: (index: number, answer: string) => void;
+    setCourseTargets: (targets: CourseTarget) => void;
     setSelectedTarget: (index: number) => void;
+    setCourseOutline: (outline: CourseOutline) => void;
     incrementMessageCount: () => void;
+    reset: () => void;
 }
 
-const useCreationStore = create<CreationState>((set, get) => ({
+const useCreationStore = create<CreationState>((set, get, store) => ({
     currentState: "title",
     threadId: null,
     currentChatDisplay: `Hey ${useUserStore.getState().user?.firstName || ''}, What would you like to learn about today?`,
@@ -75,9 +88,16 @@ const useCreationStore = create<CreationState>((set, get) => ({
         currentMap.set(index, answer);
         set({prerequisitesAnswers: currentMap})
     },
+    setCourseTargets(targets: CourseTarget) {
+        set({courseTargets: {targets: targets.targets, recommended: targets.recommended}})
+    },
     setSelectedTarget(index: number) {
         set({selectedTarget: index})
-    }
+    },
+    setCourseOutline: (outline: CourseOutline) => {
+        set({courseOutline: outline})
+    },
+    reset: () => set({ ...store.getInitialState() })
 }))
 
 export default useCreationStore;
