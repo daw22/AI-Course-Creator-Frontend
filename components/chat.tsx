@@ -83,6 +83,7 @@ export default function Chat() {
               placeholder="Type your answer..."
               className="w-full bg-transparent border-b-2 border-white text-white placeholder-gray-400 text-lg md:text-xl py-4 focus:outline-none focus:border-gray-300 transition-colors duration-200"
               autoFocus
+              disabled={loadingMessage !== null}
             />
           </div>
 
@@ -90,6 +91,7 @@ export default function Chat() {
           <div className="flex justify-center">
             <button
               type="submit"
+              disabled={loadingMessage !== null || input.trim() === ""}
               className="px-8 py-3 border border-white text-white font-light text-sm tracking-widest uppercase hover:bg-blue-900 hover:text-white transition-all duration-300 ease-out active:scale-95"
             >
               Submit

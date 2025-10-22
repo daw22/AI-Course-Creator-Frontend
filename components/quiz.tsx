@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import useCreationStore from "@/state/creationState";
 import useGraphHistoryStore from "@/state/graphHistory";
-import { collectRoutesUsingEdgeRuntime } from "next/dist/build/utils";
+import LoadingMessage from "./loadingMessage";
 
 export default function QuizContainer() {
   const [selectedChoice, setSelectedChoice] = useState<number | null>(null);
@@ -14,6 +14,7 @@ export default function QuizContainer() {
   const prerequisitesAnswers = useCreationStore((state) => state.prerequisitesAnswers);
   const threadId = useCreationStore((state) => state.threadId);
   const setLoadingMessage = useCreationStore((state) => state.setLoadingMessage);
+  const loadingMessage = useCreationStore((state) => state.loadingMessage);
 
   const resumeGraph = useGraphHistoryStore((state) => state.resumeGraph);
 
@@ -40,7 +41,6 @@ export default function QuizContainer() {
       addAnswer(currentQuestion, questions[currentQuestion].choices[selectedChoice]);
       setTimeout(() => {
         const answersArray = prerequisitesAnswers.values();
-        //console.log("Submitting answers: ", Array.from(answersArray), "threadId: ", threadId);
         resumeGraph(Array.from(answersArray), threadId ?? '', 'get_answer');
       }, 300);
       setLoadingMessage("Submitting your answers...");
@@ -67,7 +67,7 @@ export default function QuizContainer() {
       <div className="w-full max-w-2xl">
         {/* Question Text */}
         <div
-          className="mb-12"
+          className="mb-8"
           style={{
             animation:
               direction === "right"
@@ -78,7 +78,7 @@ export default function QuizContainer() {
           }}
         >
           <h1
-            className="text-lg sm:text-sm md:text-md lg:text-lg font-light text-white text-center leading-relaxed"
+            className="text-lg sm:text-lg md:text-xl lg:text-2xl font-light text-white text-center leading-relaxed"
             style={{
               wordWrap: "break-word",
               overflowWrap: "break-word",
@@ -89,10 +89,10 @@ export default function QuizContainer() {
             {question.question}
           </h1>
         </div>
-
+        {loadingMessage && <LoadingMessage message={loadingMessage}/>}
         {/* Choices Grid */}
         <div
-          className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12"
+          className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12 mt-4"
           style={{
             animation:
               direction === "right"
@@ -150,6 +150,7 @@ export default function QuizContainer() {
 
           <button
             onClick={handleNext}
+            disabled={loadingMessage !== null}
             className="px-6 py-3 border border-white text-white font-light text-xs sm:text-sm tracking-widest uppercase hover:bg-white hover:text-black transition-all duration-300 ease-out active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {currentQuestion === questions.length - 1 ? "Finish" : "Next"}

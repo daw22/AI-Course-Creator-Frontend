@@ -6,12 +6,14 @@ import useUserStore from "@/state/user";
 import axiosInstance from "@/utils/axiosInstance";
 import { useRouter } from "next/navigation";
 import usePortalStore from "@/state/portal";
+import useCreationStore from "@/state/creationState";
 
 export default function NavBar() {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const user = useUserStore((state) => state.user);
   const open = usePortalStore((state) => state.openPortal);
+  const reset  = useCreationStore((state) => state.reset);
 
   const handleSignOut = async () => {
     const clearUser = useUserStore.getState().clearUser;
@@ -19,14 +21,14 @@ export default function NavBar() {
       // Optionally, you can also clear the auth token from axiosInstance here
       const response = await axiosInstance.post("/auth/logout");
       clearUser();
-      console.log("Signed out successfully:", response.data);
+      reset();
       router.push("/");
     } catch (error) {
       console.error("Error signing out:", error);
     }
   }
   return (
-    <nav className="w-full fixed top-0 left-0 z-50 text-white">
+    <nav className="w-full fixed top-0 left-0 z-50 text-white bg-black">
       <div className="max-w-6xl mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo / Title */}
