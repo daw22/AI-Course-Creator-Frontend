@@ -33,7 +33,7 @@ type CreationState = {
     selectedTarget: number | null;
     courseTitle: string | null;
     courseOutline: CourseOutline | null;
-
+    rewindToStep: number | null;
     //actions
     setCurrentChatDisplay: (message: string) => void;
     setLoadingMessage: (message: string | null) => void;
@@ -46,6 +46,7 @@ type CreationState = {
     setSelectedTarget: (index: number) => void;
     setCourseOutline: (outline: CourseOutline) => void;
     incrementMessageCount: () => void;
+    setRewindToStep: (step: number | null) => void;
     reset: () => void;
 }
 
@@ -61,6 +62,7 @@ const useCreationStore = create<CreationState>((set, get, store) => ({
     courseOutline: null,
     courseTitle: null,
     selectedTarget: null,
+    rewindToStep: null,
     //actions
     setCurrentChatDisplay: (message: string) => {
         set({currentChatDisplay: message})
@@ -96,6 +98,9 @@ const useCreationStore = create<CreationState>((set, get, store) => ({
     },
     setCourseOutline: (outline: CourseOutline) => {
         set({courseOutline: outline})
+    },
+    setRewindToStep: (step: number | null) => {
+        set({rewindToStep: step})
     },
     reset: () => set({ ...store.getInitialState() })
 }))

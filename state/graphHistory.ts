@@ -37,7 +37,7 @@ type GraphHistoryState = {
   addCheckpoint: (threadId: string, checkpoint: Checkpoint) => void;
   getCourseHistory: (threadId: string) => CourseHistory | null;
   deleteCourseHistory: (threadId: string) => void;
-  rewindtoCheckpoint: (threadId: string, checkpointId: string) => void;
+  rewindtoCheckpoint: (threadId: string, checkpointId: string | null) => void;
   startGraph: (input: string) => Promise<void>;
   resumeGraph: (response: string | string[] | number, threadId: string, resumeFrom: string) => Promise<void>;
   error: string | null;
@@ -92,18 +92,23 @@ const useGraphHistoryStore = create<GraphHistoryState>((set, get) => ({
       history: state.history.filter((courseHistory) => courseHistory.threadId !== threadId),
     })),
 
-  rewindtoCheckpoint: (threadId, checkpointId) =>
+  rewindtoCheckpoint: (threadId, checkpointId = null) =>
     set((state) => ({
       history: state.history.map((courseHistory) => {
         if (courseHistory.threadId === threadId) {
-          const checkpointIndex = courseHistory.checkpoints.findIndex(
-            (cp) => cp.checkpointId === checkpointId
-          );
-          if (checkpointIndex !== -1) {
-            return {
-              ...courseHistory,
-              checkpoints: courseHistory.checkpoints.slice(0, checkpointIndex + 1),
-            };
+          if (checkpointId === null) {
+            return { ...courseHistory, checkpoints: [] };
+          }
+          else {
+            const checkpointIndex = courseHistory.checkpoints.findIndex(
+              (cp) => cp.checkpointId === checkpointId
+            );
+            if (checkpointIndex !== -1) {
+              return {
+                ...courseHistory,
+                checkpoints: courseHistory.checkpoints.slice(0, checkpointIndex + 1),
+              };
+            }
           }
         }
         return courseHistory;

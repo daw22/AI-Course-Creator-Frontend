@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-type PortalType = "signIn" | "signUp" | null;
+type PortalType = "signIn" | "signUp" | "Rewind" |null;
 
 type PortalState = {
   type: PortalType;

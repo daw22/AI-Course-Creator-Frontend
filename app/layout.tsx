@@ -6,6 +6,8 @@ import Portal from "@/components/portal";
 import SignInForm from "@/components/signInForm";
 import SignUpForm from "@/components/signUpForm";
 import usePortalStore from "@/state/portal";
+import RewindProgress from "@/components/rewindProgress";
+
 import "./globals.css";
 
 const geistSans = Geist({
@@ -35,8 +37,8 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased pt-16 bg-[#121212]`}
       >
         <NavBar />
-        <Portal title={type === "signIn" ? "Sign In" : "Sign Up"}>
-          {type === "signIn" ? <SignInForm /> : <SignUpForm />}
+        <Portal title={type === "signIn" ? "Sign In" : type === "signUp" ? "Sign Up" : "Rewind Progress"}>
+          {type === "signIn" ? <SignInForm /> : type === "signUp" ? <SignUpForm /> : <RewindProgress />}
         </Portal>
         {children}
       </body>
