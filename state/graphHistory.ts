@@ -35,6 +35,7 @@ type GraphHistoryState = {
   history: CourseHistory[];
   createCourseHistory: (courseTitle: string, threadId: string) => void;
   addCheckpoint: (threadId: string, checkpoint: Checkpoint) => void;
+  removeCheckpoint: (threadId: string, checkpointId: string) => void;
   getCourseHistory: (threadId: string) => CourseHistory | null;
   deleteCourseHistory: (threadId: string) => void;
   rewindtoCheckpoint: (threadId: string, checkpointId: string | null) => void;
@@ -84,6 +85,20 @@ const useGraphHistoryStore = create<GraphHistoryState>((set, get) => ({
           : courseHistory
       ),
     })),
+  removeCheckpoint: (threadId, checkpointId) =>
+    set((state) => ({
+      history: state.history.map((courseHistory) => {
+        if (courseHistory.threadId === threadId) {
+          return {
+            ...courseHistory,
+            checkpoints: courseHistory.checkpoints.filter(
+              (cp) => cp.checkpointId !== checkpointId
+            ),
+          };
+        }
+        return courseHistory;
+      }),
+    })),  
 
   getCourseHistory: (threadId) => get().history.find((ch) => ch.threadId === threadId) || null,
 
@@ -339,6 +354,14 @@ const useGraphHistoryStore = create<GraphHistoryState>((set, get) => ({
               checkpointId: data?.config?.configurable.checkpoint_id,
               stateSnapshot: JSON.stringify(data?.course_outline),
             };
+            // check if "course_outline_generated" checkpoint already exists delete it to avoid duplicates
+            const courseHistory = get().getCourseHistory(data?.config.configurable.thread_id);
+            const existing = courseHistory?.checkpoints.find(
+              (cp) => cp.nodeName === "Course Outline Generated"
+            );
+            if (existing) {
+              get().removeCheckpoint(data?.config.configurable.thread_id, existing.checkpointId);
+            }
             get().addCheckpoint(data?.config.configurable.thread_id, checkpoint);
           }
         },

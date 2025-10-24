@@ -2,10 +2,12 @@
 import React from "react";
 import { X } from "lucide-react";
 import usePortalStore from "@/state/portal";
+import useCreationStore from "@/state/creationState";
 
 export default function Portal({ children, title }: any) {
   const type = usePortalStore((state) => state.type);
   const close = usePortalStore((state) => state.closePortal);
+  const currentState = useCreationStore((state) => state.currentState);
 
   if (type === null) return null;
   return (
@@ -17,6 +19,7 @@ export default function Portal({ children, title }: any) {
           {title && <h2 className="text-xl font-light tracking-wider text-white">{title}</h2>}
           <button
             onClick={close}
+            disabled={currentState === "outline"}
             className="text-gray-400 hover:text-white transition-colors ml-auto"
           >
             <X size={24} />

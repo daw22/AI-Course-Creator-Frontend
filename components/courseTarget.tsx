@@ -39,10 +39,10 @@ export default function CourseTarget() {
       <div className="w-full max-w-2xl">
         {/* Question Text */}
         <div
-          className="mb-12"
+          className="mb-12 text-center"
         >
           <h1
-            className="text-lg sm:text-sm md:text-md lg:text-lg font-light text-white text-center leading-relaxed"
+            className="text-lg sm:text-sm md:text-md lg:text-lg font-light text-white text-center leading-relaxed mb-4"
             style={{
               wordWrap: "break-word",
               overflowWrap: "break-word",

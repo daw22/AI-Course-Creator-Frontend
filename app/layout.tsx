@@ -5,6 +5,7 @@ import NavBar from "@/components/navbar";
 import Portal from "@/components/portal";
 import SignInForm from "@/components/signInForm";
 import SignUpForm from "@/components/signUpForm";
+import ImproveOutline from "@/components/improveOutline";
 import usePortalStore from "@/state/portal";
 import RewindProgress from "@/components/rewindProgress";
 
@@ -37,8 +38,13 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased pt-16 bg-[#121212]`}
       >
         <NavBar />
-        <Portal title={type === "signIn" ? "Sign In" : type === "signUp" ? "Sign Up" : "Rewind Progress"}>
-          {type === "signIn" ? <SignInForm /> : type === "signUp" ? <SignUpForm /> : <RewindProgress />}
+        <Portal title={type === "signIn" ? "Sign In" : type === "signUp" ? "Sign Up" : type === "rewind" ? "Rewind Progress" : "Improve Outline"}>
+          {
+            type === "signIn" ? <SignInForm /> : 
+            type === "signUp" ? <SignUpForm /> : 
+            type === "rewind" ? <RewindProgress /> :
+            type === "improveOutline" ? <ImproveOutline /> : null
+          }
         </Portal>
         {children}
       </body>

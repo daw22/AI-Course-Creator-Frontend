@@ -1,6 +1,8 @@
 import usePortalStore from "@/state/portal";
 import useGraphHistoryStore from "@/state/graphHistory";
 import useCreationStore from "@/state/creationState";
+import LoadingMessage from "./loadingMessage";
+
 
 const RewindProgress = () => {
   const closePortal = usePortalStore((state) => state.closePortal);
@@ -11,6 +13,7 @@ const RewindProgress = () => {
   const rewindStep = useCreationStore((state) => state.rewindToStep);
   const steps = ["title", "prerequisites", "target", "outline"];
   const currentStep = steps.indexOf(currentState);
+  const loadingMessage = useCreationStore((state) => state.loadingMessage);
 
   const handleRewind = () => {
     // just return if it is current step
@@ -29,7 +32,15 @@ const RewindProgress = () => {
 
   return (
     <div className="text-white">
-      Are you sure you want to rewind to this step? All progress after this step will be lost.
+      <h2 className="text-xl font-semibold mb-4">Rewind Progress</h2>
+      <p className="mb-4">
+        You are about to rewind your progress to an earlier step. This action
+        cannot be undone.
+      </p>
+      <p className="mb-4">
+        Current Step: <strong>{currentState}</strong>
+      </p>
+      {loadingMessage && <LoadingMessage message={loadingMessage} />}
       <div className="mt-4 flex justify-end gap-4">
         <button
           className="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors"

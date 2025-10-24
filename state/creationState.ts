@@ -12,14 +12,16 @@ type CourseTarget = {
 }
 
 type CourseOutline = {
-    chapter_title: string;
-    chapter_number: number;
-    chapter_target?: string;
-    subtopics: {
-        subtopic_title: string;
-        subtopic_target?: string;
+    chapters: {
+        chapter_title: string;
+        chapter_number: number;
+        chapter_target?: string;
+        subtopics: {
+            subtopic_title: string;
+            subtopic_target?: string;
+        }[];
     }[];
-}[];
+};
 
 type CreationState = {
     currentState: string;
