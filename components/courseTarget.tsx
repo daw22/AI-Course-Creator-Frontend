@@ -13,9 +13,11 @@ export default function CourseTarget() {
   const setLoadingMessage = useCreationStore((state) => state.setLoadingMessage);
   const loadingMessage = useCreationStore((state) => state.loadingMessage);
   const setSelectedTarget = useCreationStore((state) => state.setSelectedTarget);
+  const rewindedToCheckPoint = useCreationStore((state) => state.rewindedToCheckPoint);
 
   const resumeGraph = useGraphHistoryStore((state) => state.resumeGraph);
-
+  const resumeGraphFromCheckpoint = useGraphHistoryStore((state) => state.resumeGraphFromCheckpoint);
+  const setRewindedToCheckPoint = useCreationStore((state) => state.setRewindedToCheckpoint);
 
   const handleChoiceSelect = (index: number) => {
     setSelectedChoice(index);
@@ -25,11 +27,21 @@ export default function CourseTarget() {
     setLoadingMessage("Submitting your course target...");
     if (selectedChoice !== null) {
       setSelectedTarget(selectedChoice);
-      resumeGraph(
-        selectedChoice,
-        threadId ?? "",
-        "get_course_target"
-      );
+      if (rewindedToCheckPoint) {
+        resumeGraphFromCheckpoint(
+          selectedChoice,
+          threadId ?? "",
+          rewindedToCheckPoint
+        );
+        setRewindedToCheckPoint("");
+      }
+      else{
+        resumeGraph(
+          selectedChoice,
+          threadId ?? "",
+          "get_course_target"
+        );
+      };
     }
   };
 

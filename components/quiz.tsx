@@ -15,8 +15,11 @@ export default function QuizContainer() {
   const threadId = useCreationStore((state) => state.threadId);
   const setLoadingMessage = useCreationStore((state) => state.setLoadingMessage);
   const loadingMessage = useCreationStore((state) => state.loadingMessage);
+  const rewindedToCheckPoint = useCreationStore((state) => state.rewindedToCheckPoint);
+  const setRewindedToCheckPoint = useCreationStore((state) => state.setRewindedToCheckpoint);
 
   const resumeGraph = useGraphHistoryStore((state) => state.resumeGraph);
+  const resumeGraphFromCheckpoint = useGraphHistoryStore((state) => state.resumeGraphFromCheckpoint);
 
   const question = questions[currentQuestion];
 
@@ -41,7 +44,23 @@ export default function QuizContainer() {
       addAnswer(currentQuestion, questions[currentQuestion].choices[selectedChoice]);
       setTimeout(() => {
         const answersArray = prerequisitesAnswers.values();
-        resumeGraph(Array.from(answersArray), threadId ?? '', 'get_answer');
+        if (rewindedToCheckPoint) {
+          console.log("Resuming from checkpoint:", rewindedToCheckPoint);
+          resumeGraphFromCheckpoint(
+            Array.from(answersArray),
+            threadId ?? '',
+            rewindedToCheckPoint
+          );
+          setRewindedToCheckPoint("");
+        }
+        else {
+          console.log("Resuming normally with answers:", 'get_answer');
+          resumeGraph(
+            Array.from(answersArray),
+            threadId ?? '',
+            'get_answer'
+          );
+        }
       }, 300);
       setLoadingMessage("Submitting your answers...");
       setTimeout(() => {

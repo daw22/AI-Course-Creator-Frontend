@@ -29,7 +29,7 @@ export default function ProgressIndicator({ currentStep }: ProgressIndicatorProp
     openPortal("rewind");
   };
   return (
-    <div className="w-full max-w-3xl mx-auto mt-4 mb-4 px-4 ">
+    <div className="w-full max-w-3xl mx-auto mt-8 mb-4 px-4 ">
       <div className="relative flex justify-between items-center">
         {/* Base Line */}
         <div className="absolute top-1/2 left-0 w-full h-[2px] bg-gray-700 -translate-y-1/2 rounded-full" />
