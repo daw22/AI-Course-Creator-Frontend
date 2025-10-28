@@ -12,10 +12,10 @@ export default function Chat() {
   const startGraph = useGraphHistoryStore((state) => state.startGraph);
   const resumeGraph = useGraphHistoryStore((state) => state.resumeGraph);
 
-  const displayMessage = useCreationStore((state) => state.currentChatDisplay)
   const messageCount = useCreationStore((state) => state.messageCount);
   const incrementMessageCount = useCreationStore((state) => state.incrementMessageCount);
   const threadId = useCreationStore((state) => state.threadId);
+  const displayMessage = useCreationStore((state) => state.currentChatDisplay);
   const setLoadingMessage = useCreationStore((state) => state.setLoadingMessage);
   const loadingMessage = useCreationStore((state) => state.loadingMessage);
 
@@ -67,7 +67,7 @@ export default function Chat() {
               maxWidth: "100%",
             }}
           >
-            {displayMessage}
+            {displayMessage ? displayMessage : displayedQuestion}
           </h1>
         </div>}
          {loadingMessage && <LoadingMessage message={loadingMessage}/>}

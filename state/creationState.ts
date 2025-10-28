@@ -11,17 +11,18 @@ type CourseTarget = {
     recommended: number
 }
 
-type CourseOutline = {
-    chapters: {
-        chapter_title: string;
-        chapter_number: number;
-        chapter_target?: string;
+export type CourseOutline =[
+    {
+        chapter_title: string,
+        chapter_number: number,
+        chapter_target: string,
         subtopics: {
-            subtopic_title: string;
-            subtopic_target?: string;
-        }[];
-    }[];
-};
+            subtopic_title: string,
+            subtopic_target?: string,
+        }[],
+    }
+]
+
 
 type CreationState = {
     currentState: string;

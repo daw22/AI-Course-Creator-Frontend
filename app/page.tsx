@@ -5,11 +5,13 @@ import { ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import useUserStore from "@/state/user";
 import usePortalStore from "@/state/portal";
+import useCreationStore from "@/state/creationState";
 
 export default function HomePage() {
   const router = useRouter();
   const user = useUserStore((state) => state.user);
   const open = usePortalStore((state) => state.openPortal);
+  const currentState = useCreationStore((state) => state.currentState);
 
   const features = [
     {
@@ -38,7 +40,7 @@ export default function HomePage() {
     },
   ];
   const toCreateCourse = () => {
-    if (user) {
+    if (user && !currentState) {
       router.push("/CreateCourse");
     } else {
       // open sign in modal

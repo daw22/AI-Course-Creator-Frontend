@@ -8,19 +8,14 @@ const axiosInstance = axios.create({
   timeout: 5000,
 });
 
-// // We'll store the access token in memory for security
-// let accessToken: string | null = null;
 
-const { setAccessToken, getAccessToken } = useUserStore.getState();
-// Function to set the token, called after login/refresh
-export const setAuthToken = (token: string | null) => {
-  setAccessToken(token);
-};
+const setAccessToken = useUserStore.getState().setAccessToken;
 
 // --- Request Interceptor ---
 // Attaches the access token to every outgoing request
 axiosInstance.interceptors.request.use(
   (config) => {
+    const getAccessToken = useUserStore.getState().getAccessToken;
     const token = getAccessToken();
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
@@ -36,7 +31,7 @@ axiosInstance.interceptors.request.use(
 let isRefreshing = false;
 let failedQueue: any[] = [];
 
-const processQueue = (error: any, token = null) => {
+function processQueue(error: any, token = null) {
   failedQueue.forEach(prom => {
     if (error) {
       prom.reject(error);
@@ -45,13 +40,15 @@ const processQueue = (error: any, token = null) => {
     }
   });
   failedQueue = [];
-};
+}
 
 axiosInstance.interceptors.response.use(
-  (response) => response, // Simply return the response if it's successful
-  (error) => {
+  (response) =>  response, // Simply return the response if it's successful
+  async (error) => {
     const originalRequest = error.config;
-
+    if (originalRequest.url.includes('/auth/refresh')) {
+      return Promise.reject(error);
+    }
     // Check if the error is a 401 and it's not a retry request
     if (error.response?.status === 401 && !originalRequest._retry) {
       
@@ -75,10 +72,11 @@ axiosInstance.interceptors.response.use(
       return new Promise((resolve, reject) => {
         // Make the call to the refresh token endpoint
         // The HttpOnly cookie is sent automatically by the browser
-        axios.post(`${process.env.NEXT_PUBLIC_API_BASE_URL}/refresh`, {}, { withCredentials: true })
+        axiosInstance.post(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/refresh`, {}, { withCredentials: true })
           .then(res => {
-            const newAccessToken = res.data.accessToken;
-            setAuthToken(newAccessToken); // Update our in-memory token
+            const newAccessToken = res.data.access_token;
+            console.log("Token refreshed:", newAccessToken);
+            setAccessToken(newAccessToken); // Update our in-memory token
 
             // Update the original request with the new token
             originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
@@ -91,7 +89,7 @@ axiosInstance.interceptors.response.use(
           })
           .catch(err => {
             // If refresh fails, clear token, process queue with error, and redirect
-            setAuthToken(null);
+            setAccessToken(null);
             processQueue(err, null);
             reject(err);
           })

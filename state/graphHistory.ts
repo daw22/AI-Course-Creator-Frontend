@@ -2,8 +2,8 @@ import { create } from "zustand";
 import { fetchEventSource } from "@microsoft/fetch-event-source";
 import useUserStore from "./user";
 import useCreationStore from "./creationState";
+import useCurrentCourseStore from "./curentCourse";
 import { Question } from "./creationState";
-import { config } from "process";
 
 const GRAPH_START_ENDPOINT = `${process.env.NEXT_PUBLIC_API_BASE_URL}/graph/start`;
 const GRAPH_RESUME_ENDPOINT = `${process.env.NEXT_PUBLIC_API_BASE_URL}/graph/resume`;
@@ -20,6 +20,7 @@ const setLoadingMessage = useCreationStore.getState().setLoadingMessage;
 const setCourseTargets = useCreationStore.getState().setCourseTargets;
 const setCourseOutline = useCreationStore.getState().setCourseOutline;
 const setRewindedToCheckpoint = useCreationStore.getState().setRewindedToCheckpoint;
+const setCurrentContent = useCurrentCourseStore.getState().setCurrentContent;
 
 type Checkpoint = {
   type: "CREATION" | "GENERATION";
@@ -318,7 +319,7 @@ const useGraphHistoryStore = create<GraphHistoryState>((set, get) => ({
             const outline = data?.course_outline;
             if (!outline) return;
             setLoadingMessage(null);
-            setCourseOutline(outline);
+            setCourseOutline(outline.chapters);
             setCurrentState("outline");
             // check if "course_outline_generated" checkpoint already exists delete it to avoid duplicates
             const courseHistory = get().getCourseHistory(data?.config.configurable.thread_id);
@@ -328,6 +329,14 @@ const useGraphHistoryStore = create<GraphHistoryState>((set, get) => ({
             if (existing) {
               get().removeCheckpoint(data?.config.configurable.thread_id, existing.checkpointId);
             }          
+          }
+
+          if (event.event === "on_content_creation_start") {}
+          if (event.event === "on_content_chunk") {
+            const contentChunk = data?.content_chunk;
+            if (contentChunk) {
+              setCurrentContent(contentChunk);
+            }
           }
         },
         onerror: (err) => {
@@ -403,7 +412,7 @@ const useGraphHistoryStore = create<GraphHistoryState>((set, get) => ({
             const outline = data?.course_outline;
             if (!outline) return;
             setLoadingMessage(null);
-            setCourseOutline(outline);
+            setCourseOutline(outline.chapters);
             setCurrentState("outline");
             // check if "course_outline_generated" checkpoint already exists delete it to avoid duplicates
             const courseHistory = get().getCourseHistory(data?.config.configurable.thread_id);

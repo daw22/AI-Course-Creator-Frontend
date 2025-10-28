@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import axiosInstance, {setAuthToken} from "@/utils/axiosInstance";
+import axiosInstance from "@/utils/axiosInstance";
 import { useRouter } from "next/navigation";
 import useUserStore from "@/state/user";
 import usePortalStore from "@/state/portal";
@@ -9,6 +9,8 @@ import { access } from "fs";
 export default function SignInForm() {
   const router = useRouter();
   const close = usePortalStore((state) => state.closePortal);
+  const setAuthToken = useUserStore((state) => state.setAccessToken);
+  
   const [formData, setFormData] = useState({
     username: "",
     password: "",
