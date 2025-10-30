@@ -12,25 +12,30 @@ import {
 import useCurrentCourseStore from "@/state/curentCourse";
 import { Response } from "@/components/ai-elements/response";
 import useGraphHistoryStore from "@/state/graphHistory";
-import useCreationStore from "@/state/creationState";
 
 
 export default function CourseViewerPage() {
   const [ready, setReady] = useState(false);
   const [indexOpen, setIndexOpen] = useState(true);
   const [darkMode, setDarkMode] = useState(true);
+
   const courseInfo = useCurrentCourseStore((state) => state.course);
   const loadGeneratedContent = useCurrentCourseStore((state) => state.loadGeneratedContent);
-  const currentContent = useCurrentCourseStore((state) => state.currentContent);
+  const waitingStream = useCurrentCourseStore((state) => state.waitingForStream);
+  const setWaitingStream = useCurrentCourseStore((state) => state.setWaitingForStream);
 
-  const [progress] = useState<[number, number]>(courseInfo ? courseInfo.progress : [0, 0]);
-  const [currentSubtopic, setCurrentSubtopic] = useState<number>(progress[1] - 1);
+  const currentContent = useCurrentCourseStore((state) => state.currentContent);
+  const swapCurrentContent = useCurrentCourseStore((state) => state.swapCurrentContent);
+  const quiz = useCurrentCourseStore((state) => state.quiz);
+  const setCurrentContent = useCurrentCourseStore((state) => state.setCurrentContent);
+  const progress = useCurrentCourseStore((state) => state.course?.progress) || [0, 0];
+  
   const [currentChapter, setCurrentChapter] = useState(progress[0]);
+  const [currentSubtopic, setCurrentSubtopic] = useState(progress[1] - 1);
 
   const resumeGraph = useGraphHistoryStore((state) => state.resumeGraph);
-  const threadId = useCreationStore((state) => state.threadId);
 
-  console.log("Course Info:", courseInfo?.outline);
+  console.log("Course Info:", courseInfo);
 
   const current =
     courseInfo?.outline[currentChapter] !== undefined
@@ -38,20 +43,31 @@ export default function CourseViewerPage() {
       : null;
 
   const nextSubtopic = () => {
-    const nextIndex = currentSubtopic + 1;
+    // try to generate next topic if no quiz is due
+    if (!quiz) {
+      console.log("No quiz due, generating next subtopic");
+      setCurrentContent("<<<CLEAR>>>"); // clear current content
+      setCurrentChapter(progress[0]);
+      setCurrentSubtopic(progress[1]);
+      setWaitingStream(true);
+      resumeGraph("", courseInfo?.threadId || "", "content_creator_start");
+    }else {
+      // render quiz portal
+      console.log("Quiz is due now:", quiz);
+      try{
+        // submit quiz answers and resume graph
+        let answers = quiz.map((q) => q.answer);
+        resumeGraph(answers, courseInfo?.threadId || "", "content_creator_resume");
+        //move to next chapter
+        if (courseInfo && courseInfo?.outline?.length - 2 < progress[0]) {
+          setCurrentChapter(progress[0] + 1);
+          setCurrentSubtopic(-1);
+        }
+      }catch(err){
 
-    const currentChapterSubtopics = courseInfo?.outline[currentChapter]?.subtopics ?? [];
-    const outlineLength = courseInfo?.outline?.length ?? 0;
-
-    if (nextIndex < currentChapterSubtopics.length) {
-      setCurrentSubtopic(nextIndex);
-      // start generating subtopic content here
-      resumeGraph("", threadId ?? "", "content_creator_start")
-    } else if (currentChapter + 1 < outlineLength) {
-      setCurrentChapter(currentChapter + 1);
-      setCurrentSubtopic(-1);
+      }
     }
-  };
+  }
 
   const bg = darkMode ? "bg-neutral-950 text-gray-100" : "bg-gray-100 text-gray-900";
   const panel = darkMode ? "bg-neutral-900 border-neutral-800" : "bg-white border-gray-300";
@@ -113,14 +129,11 @@ export default function CourseViewerPage() {
 
               <ul className="ml-4 space-y-1">
                 {chapter.subtopics.map((sub, sIdx) => {
-                  const locked =
-                    cIdx > progress[0] ||
-                    (cIdx === progress[0] && sIdx >= progress[1]);
                   return (
                     <li
                       key={sIdx}
                       className={`text-sm flex items-center gap-2 cursor-pointer ${
-                        locked
+                        cIdx > progress[0] || (cIdx === progress[0] && sIdx >= progress[1])
                           ? "opacity-30 blur-[1px]"
                           : "hover:text-blue-400 transition-colors"
                       } ${
@@ -129,9 +142,10 @@ export default function CourseViewerPage() {
                           : ""
                       }`}
                       onClick={() => {
-                        if (!locked) {
+                        if (!(cIdx > progress[0] || (cIdx === progress[0] && sIdx >= progress[1]))) {
                           setCurrentChapter(cIdx);
                           setCurrentSubtopic(sIdx);
+                          swapCurrentContent(cIdx, sIdx);
                         }
                       }}
                     >
@@ -164,9 +178,7 @@ export default function CourseViewerPage() {
               </button>
             )}
             <h1 className="text-base font-medium">
-              {currentSubtopic === null
-                ? `${courseInfo?.outline?.[currentChapter].chapter_number}. ${courseInfo?.outline?.[currentChapter].chapter_title}`
-                : `${courseInfo?.outline?.[currentChapter].chapter_number}.${currentSubtopic + 1} — ${current?.subtopic_title}`}
+              {courseInfo?.outline[currentChapter]?.chapter_title || ""}
             </h1>
           </div>
 
@@ -175,7 +187,7 @@ export default function CourseViewerPage() {
               onClick={nextSubtopic}
               className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 transition-colors text-white px-3 py-1.5 rounded-md text-sm"
             >
-              <Play size={16} /> Generate Next
+              <Play size={16} /> Next
             </button>
 
             {/* Dark Mode Toggle */}
@@ -209,7 +221,16 @@ export default function CourseViewerPage() {
                 </p>
               </div>
             ) : (
-              <Response>{currentContent}</Response>
+              <>
+                {
+                  waitingStream ? 
+                  <div className="flex items-center gap-2 ">
+                    <Loader2 className="w-4 h-4 animate-spin text-pink-400" /> 
+                    <span className="text-sm"> Generating content</span>
+                  </div>
+                  : <Response isAnimating>{currentContent}</Response>
+                }
+              </>
             )}
           </div>
         </div>

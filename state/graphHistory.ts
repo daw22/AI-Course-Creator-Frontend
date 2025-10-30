@@ -21,6 +21,9 @@ const setCourseTargets = useCreationStore.getState().setCourseTargets;
 const setCourseOutline = useCreationStore.getState().setCourseOutline;
 const setRewindedToCheckpoint = useCreationStore.getState().setRewindedToCheckpoint;
 const setCurrentContent = useCurrentCourseStore.getState().setCurrentContent;
+const setQuiz = useCurrentCourseStore.getState().setQuiz;
+const setCourseProgress = useCurrentCourseStore.getState().setCourseProgress;
+const setWaitingForStream = useCurrentCourseStore.getState().setWaitingForStream;
 
 type Checkpoint = {
   type: "CREATION" | "GENERATION";
@@ -43,8 +46,8 @@ type GraphHistoryState = {
   deleteCourseHistory: (threadId: string) => void;
   rewindtoCheckpoint: (threadId: string, step: number) => void;
   startGraph: (input: string) => Promise<void>;
-  resumeGraph: (response: string | string[] | number, threadId: string, resumeFrom: string) => Promise<void>;
-  resumeGraphFromCheckpoint: (response: string | string[] | number | null, threadId: string, checkpointId: string) => Promise<void>;
+  resumeGraph: (response: string | string[] | number | number[], threadId: string, resumeFrom: string) => Promise<void>;
+  resumeGraphFromCheckpoint: (response: string | string[] | number | number[] |null, threadId: string, checkpointId: string) => Promise<void>;
   error: string | null;
   abortController?: AbortController;
 };
@@ -331,12 +334,37 @@ const useGraphHistoryStore = create<GraphHistoryState>((set, get) => ({
             }          
           }
 
-          if (event.event === "on_content_creation_start") {}
-          if (event.event === "on_content_chunk") {
-            const contentChunk = data?.content_chunk;
+          if (event.event === "on_content_creation_start") {
+            const progress = data?.course_progress;
+            if (progress) {
+              setCourseProgress(progress);
+            }
+          }
+          
+          if (event.event === "on_markdown_stream") {
+            const contentChunk = data?.markdown;
             if (contentChunk) {
               setCurrentContent(contentChunk);
             }
+            setWaitingForStream(false);
+          }
+
+          if (event.event === "on_quiz_created") {
+            const quizData = data?.quiz;
+            console.log("Quiz Data Received:", quizData);
+            if (quizData) {
+              const formattedQuiz = quizData.map((q: any) => ({
+                question: q.question,
+                options: q.options,
+                answer: q.answer,
+              }));
+              setQuiz(formattedQuiz);
+              setLoadingMessage(null);
+            }
+          }
+
+          if (event.event === "on_quiz_result_stored") {
+            setQuiz(null);
           }
         },
         onerror: (err) => {
@@ -421,6 +449,14 @@ const useGraphHistoryStore = create<GraphHistoryState>((set, get) => ({
             );
             if (existing) {
               get().removeCheckpoint(data?.config.configurable.thread_id, existing.checkpointId);
+            }
+          }
+
+          if (event.event === "on_content_creation_start") {}
+          if (event.event === "on_content_chunk") {
+            const contentChunk = data?.content_chunk;
+            if (contentChunk) {
+              setCurrentContent(contentChunk);
             }
           }
         }
