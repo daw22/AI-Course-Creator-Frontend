@@ -1,4 +1,4 @@
-import React from "react";
+import React, { RefCallback } from "react";
 import axiosInstance from "@/utils/axiosInstance";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
@@ -29,7 +29,7 @@ export default function CourseCard({ courseId, title, target, status, setCourses
   const truncatedTarget =
     target.length > 150 ? target.slice(0, 150) + "..." : target;
   
-  const onDelete = async () => {
+  const onDelete = async (e: React.MouseEvent) => {
     setCourses((prevCourses) => prevCourses.filter(course => course._id !== courseId));
     const response = await axiosInstance.delete(`/courses/${courseId}`);
     if (response.status === 200) {
@@ -42,6 +42,7 @@ export default function CourseCard({ courseId, title, target, status, setCourses
         setCourses(courses.data.courses);
       }
     }
+    e.stopPropagation();
   };
 
   const handleCourseClick = async () => {
@@ -75,7 +76,7 @@ export default function CourseCard({ courseId, title, target, status, setCourses
     >
       {/* Delete Icon */}
       <button
-        onClick={onDelete}
+        onClick={(e) => onDelete(e)}
         className="absolute top-3 right-3 hover:opacity-80"
         title="Delete Course"
       >

@@ -21,9 +21,9 @@ const setCourseTargets = useCreationStore.getState().setCourseTargets;
 const setCourseOutline = useCreationStore.getState().setCourseOutline;
 const setRewindedToCheckpoint = useCreationStore.getState().setRewindedToCheckpoint;
 const setCurrentContent = useCurrentCourseStore.getState().setCurrentContent;
-const setQuiz = useCurrentCourseStore.getState().setQuiz;
 const setCourseProgress = useCurrentCourseStore.getState().setCourseProgress;
 const setWaitingForStream = useCurrentCourseStore.getState().setWaitingForStream;
+const addSubtopic = useCurrentCourseStore.getState().addSubtopic;
 
 type Checkpoint = {
   type: "CREATION" | "GENERATION";
@@ -349,23 +349,27 @@ const useGraphHistoryStore = create<GraphHistoryState>((set, get) => ({
             setWaitingForStream(false);
           }
 
-          if (event.event === "on_quiz_created") {
-            const quizData = data?.quiz;
-            console.log("Quiz Data Received:", quizData);
-            if (quizData) {
-              const formattedQuiz = quizData.map((q: any) => ({
-                question: q.question,
-                options: q.options,
-                answer: q.answer,
-              }));
-              setQuiz(formattedQuiz);
-              setLoadingMessage(null);
-            }
+          if (event.event === "on_content_generation_complete") {
+            console.log("Content generation complete, adding new subtopic.");
+            addSubtopic();
           }
+          // if (event.event === "on_quiz_created") {
+          //   const quizData = data?.quiz;
+          //   console.log("Quiz Data Received:", quizData);
+          //   if (quizData) {
+          //     const formattedQuiz = quizData.map((q: any) => ({
+          //       question: q.question,
+          //       options: q.options,
+          //       answer: q.answer,
+          //     }));
+          //     setQuiz(formattedQuiz);
+          //     setLoadingMessage(null);
+          //   }
+          // }
 
-          if (event.event === "on_quiz_result_stored") {
-            setQuiz(null);
-          }
+          // if (event.event === "on_quiz_result_stored") {
+          //   setQuiz(null);
+          // }
         },
         onerror: (err) => {
           console.warn("⚠️ Stream error (resume):", err);

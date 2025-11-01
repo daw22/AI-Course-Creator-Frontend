@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { CourseOutline } from "./creationState"
 import axiosInstance from "@/utils/axiosInstance";
+import { title } from "process";
 
 interface Subtopic {
     title: string;
@@ -39,12 +40,12 @@ interface CourseState {
     setLoadingMessage: (message: string | null) => void;
     loadGeneratedContent: () => Promise<void>;
     currentContent: string,
-    quiz: Quiz  | null,
+    // quiz: Quiz  | null,
     setCourse: (course: Course) => void;
-    addSubtopic: (progress: [number, number]) => void;
+    addSubtopic: () => void;
     clearCourse: () => void;
     setCurrentContent: (content: string) => void;
-    setQuiz: (quiz: Quiz | null) => void;
+    // setQuiz: (quiz: Quiz | null) => void;
     setCourseProgress: (progress: [number, number]) => void;
     setNextToGenerate: (progress: [number, number] | null) => void;
     swapCurrentContent: (chapterIndex: number, subtopicIndex: number) => void;
@@ -80,22 +81,57 @@ const useCurrentCourseStore = create<CourseState>((set, get) => ({
                 }
                 set({currentContent: content});
                 set({nextToGenerate: [chapterIndex ?? 0, subtopicIndex ?? 0]});
-                if (get().loadedChapters[get().loadedChapters.length -1].quiz) {
-                    console.log("Setting quiz for chapter:", get().loadedChapters[get().loadedChapters.length -1].quiz);
-                    set({quiz: get().loadedChapters[get().loadedChapters.length -1].quiz});
-                }
+                // if (get().loadedChapters[get().loadedChapters.length -1].quiz) {
+                //     console.log("Setting quiz for chapter:", get().loadedChapters[get().loadedChapters.length -1].quiz);
+                //     set({quiz: get().loadedChapters[get().loadedChapters.length -1].quiz});
+                // }
             }
         } else {
             set({loadingMessage: "Failed to load course content."});
         }
         get().setWaitingForStream(false);
     },
-    addSubtopic: async (progress: [number, number]) => {
-        get().loadGeneratedContent();
+    addSubtopic: async () => {
+        const content_to_add = get().currentContent;
+        const outline = get().course?.outline;
+        const progress = get().course?.progress;
+        if (!outline || !progress) return;
+        // get indexes
+        let chapterIndex = progress[0];
+        let subtopicIndex = progress[1];
+        if (subtopicIndex == 0) {
+            chapterIndex -= 1;
+            subtopicIndex = outline[chapterIndex].subtopics.length - 1;
+        } else {
+            subtopicIndex -= 1;
+        }
+        if (get().loadedChapters.length == 0 || get().loadedChapters[chapterIndex] == undefined) {
+            // Create a new chapter if it doesn't exist
+            const newChapter = {
+                chapter_title: outline[chapterIndex].chapter_title,
+                chapter_order: chapterIndex,
+                chapter_target: outline[chapterIndex].chapter_target,
+                subtopics: []
+            };
+            set({ loadedChapters: [...get().loadedChapters, newChapter] });
+        }
+        // push new subtopic
+        const loadedChapters = get().loadedChapters;
+        const chapter = loadedChapters[chapterIndex];
+        const newSubtopic: Subtopic = {
+            title: outline[chapterIndex].subtopics[subtopicIndex].subtopic_title,
+            content: content_to_add,
+            summary: "",
+            order: subtopicIndex,
+        };
+        chapter.subtopics.push(newSubtopic);
+        loadedChapters[chapterIndex] = chapter;
+        set({ loadedChapters });
+        console.log("updated loaded chapters:", get().loadedChapters);
     },
-    setQuiz: (quiz: Quiz | null) => {
-        set(() => ({ quiz }));
-    },
+    // setQuiz: (quiz: Quiz | null) => {
+    //     set(() => ({ quiz }));
+    // },
     setCurrentContent: (content: string) => {
         if (content == "<<<CLEAR>>>") {
             set(() => ({ currentContent: "" }));
