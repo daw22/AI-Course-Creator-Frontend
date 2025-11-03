@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import axiosInstance from "@/utils/axiosInstance";
 import { useRouter } from "next/navigation";
 import CourseCard from "@/components/courseCard";
+import useProtection from "@/components/useProtection";
 
 interface Course {
   _id: string;
@@ -15,6 +16,7 @@ interface Course {
 }
 
 export default function CoursesPage() {
+  useProtection();
   const router = useRouter();
   const [myCourses, setMyCourses] = useState<Course[]>([]);
   const itemsPerPage = 6;

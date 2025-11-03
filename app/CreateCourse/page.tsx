@@ -6,8 +6,10 @@ import Chat from "@/components/chat";
 import CourseTarget from "@/components/courseTarget";
 import CourseOutline from "@/components/courseOutline";
 import useCreationStore from "@/state/creationState";
+import useProtection from "@/components/useProtection";
 
 export default function CreateCourse() {
+  useProtection();
   const currentState = useCreationStore((state) => state.currentState)
   const steps = ["title", "prerequisites", "target", "outline"]; 
   return (
