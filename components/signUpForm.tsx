@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import usePortalStore from "@/state/portal";
 import useUserStore from "@/state/user";
 import axiosInstance from "@/utils/axiosInstance";
+import { Loader2 } from "lucide-react";
 
 export default function SignUpForm() {
   const open = usePortalStore((state) => state.openPortal);
@@ -24,14 +25,17 @@ export default function SignUpForm() {
       [name]: value,
     }));
   };
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     // reset error
     setError(null);
+    setLoading(true);
     // check if passwords match
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match");
+      setLoading(false);
       return;
     }
     // If passwords match, proceed with sign-up
@@ -48,6 +52,7 @@ export default function SignUpForm() {
     } catch (error: any) {
         console.error("Error signing up:", error);
         setError(error.response?.data?.detail || "Sign up failed");
+        setLoading(false);
         return;
     }
   };
@@ -119,9 +124,10 @@ export default function SignUpForm() {
       {/* Submit Button */}
       <button
         type="submit"
+        disabled={loading}
         className="w-full py-3 border border-white text-white font-light text-sm tracking-widest uppercase hover:bg-white hover:text-black transition-all duration-300 ease-out active:scale-95 mt-6"
       >
-        Sign Up
+        Sign Up {loading ? <Loader2 className="inline-block ml-2 animate-spin" size={12} /> : null}
       </button>
     </form>
   );

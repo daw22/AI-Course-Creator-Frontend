@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { CourseOutline } from "./creationState"
 import axiosInstance from "@/utils/axiosInstance";
 import { title } from "process";
+import { sub } from "framer-motion/client";
 
 interface Subtopic {
     title: string;
@@ -70,7 +71,6 @@ const useCurrentCourseStore = create<CourseState>((set, get) => ({
     loadGeneratedContent: async () => {
         const response = await axiosInstance.get(`/courses/get_generated_content/${get().course?.courseId}`);
         if (response.status === 200) {
-            console.log("Loaded generated content:", response.data);
             set({loadedChapters: response.data.course_content});
             if (get().course && get().course?.progress && get().loadedChapters.length > 0) {
                 const chapterIndex = get().course?.progress?.[0];
@@ -81,11 +81,6 @@ const useCurrentCourseStore = create<CourseState>((set, get) => ({
                     content = chapter?.subtopics?.[subtopicIndex - 1]?.content ?? "";
                 }
                 set({currentContent: content});
-                set({nextToGenerate: [chapterIndex ?? 0, subtopicIndex ?? 0]});
-                // if (get().loadedChapters[get().loadedChapters.length -1].quiz) {
-                //     console.log("Setting quiz for chapter:", get().loadedChapters[get().loadedChapters.length -1].quiz);
-                //     set({quiz: get().loadedChapters[get().loadedChapters.length -1].quiz});
-                // }
             }
         } else {
             set({loadingMessage: "Failed to load course content."});
@@ -106,7 +101,7 @@ const useCurrentCourseStore = create<CourseState>((set, get) => ({
             chapterIndex -= 1;
             subtopicIndex = outline[chapterIndex].subtopics.length - 1;
         }
-
+        if (subtopicIndex < 0) { subtopicIndex = 0; }
         // clone loaded chapters to update immutably
         const loadedChapters = [...get().loadedChapters];
 
@@ -138,7 +133,6 @@ const useCurrentCourseStore = create<CourseState>((set, get) => ({
         loadedChapters[chapterIndex] = updatedChapter;
 
         set({ loadedChapters });
-        console.log("updated loaded chapters:", get().loadedChapters);
     },
     // setQuiz: (quiz: Quiz | null) => {
     //     set(() => ({ quiz }));

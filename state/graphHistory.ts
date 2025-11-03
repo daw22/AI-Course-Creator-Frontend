@@ -65,12 +65,10 @@ export const refreshToken = async (): Promise<boolean> => {
     const newAccessToken = data.access_token;
     if (newAccessToken) {
       setAccessToken(newAccessToken);
-      console.log("🔄 Token refreshed successfully.");
       return true;
     }
     return false;
   } catch (err) {
-    console.error("❌ Token refresh failed:", err);
     return false;
   }
 };
@@ -118,7 +116,6 @@ const useGraphHistoryStore = create<GraphHistoryState>((set, get) => ({
     set((state) => ({
       history: state.history.map((courseHistory) => {
         if (courseHistory.threadId === threadId) {
-          console.log("before rewind Course History:", courseHistory);
             return {
               ...courseHistory,
               checkpoints: courseHistory.checkpoints.slice(0, step),
@@ -127,10 +124,8 @@ const useGraphHistoryStore = create<GraphHistoryState>((set, get) => ({
         return courseHistory;
       }),
     }));
-    console.log("after rewind Course History:", get().history);
     if (step > 0)
     setRewindedToCheckpoint(get().getCourseHistory(threadId)?.checkpoints[step - 1]?.checkpointId || "");
-    console.log("Rewinded to checkpoint:", get().getCourseHistory(threadId)?.checkpoints[step - 1]?.checkpointId);
   },
 
   startGraph: async (input: string) => {
@@ -152,14 +147,12 @@ const useGraphHistoryStore = create<GraphHistoryState>((set, get) => ({
         signal: get().abortController?.signal,
         onopen: async (response) => {
           if (response.status === 401) {
-            console.warn("Unauthorized response received. Attempting token refresh...");
             // abort the current stream
             controller.abort();
             const refreshed = await refreshToken();
             if (refreshed) {
               controller.abort();
               setTimeout(() => {
-                console.log("🔁 Retrying startGraph after token refresh...");
                 get().startGraph(input);
               }, 200);
             } else {
@@ -215,7 +208,6 @@ const useGraphHistoryStore = create<GraphHistoryState>((set, get) => ({
           }
         },
         onerror: (err) => {
-          console.warn("⚠️ Stream error:", err);
           controller.abort();
 
           set({ error: err.message || "Unknown error" });
@@ -223,7 +215,7 @@ const useGraphHistoryStore = create<GraphHistoryState>((set, get) => ({
         },
       });
     } catch (err) {
-      console.error("Stream failed:", err);
+      console.error("Error starting graph:", err);
     }
   },
 
@@ -243,7 +235,6 @@ const useGraphHistoryStore = create<GraphHistoryState>((set, get) => ({
         signal: get().abortController?.signal,
         onopen: async (res) => {
           if (res.status === 401) {
-            console.warn("Unauthorized response received. Attempting token refresh...");
             // abort the current stream
             controller.abort();
             const refreshed = await refreshToken();
@@ -259,8 +250,6 @@ const useGraphHistoryStore = create<GraphHistoryState>((set, get) => ({
           }
         },
         onmessage: (event) => {
-          console.log("Graph Resume Event:", event);
-          
           let data: any = null;
           try {
             data = JSON.parse(event.data);
@@ -350,30 +339,10 @@ const useGraphHistoryStore = create<GraphHistoryState>((set, get) => ({
           }
 
           if (event.event === "on_content_generation_complete") {
-            console.log("Content generation complete, adding new subtopic.");
             addSubtopic();
           }
-          // if (event.event === "on_quiz_created") {
-          //   const quizData = data?.quiz;
-          //   console.log("Quiz Data Received:", quizData);
-          //   if (quizData) {
-          //     const formattedQuiz = quizData.map((q: any) => ({
-          //       question: q.question,
-          //       options: q.options,
-          //       answer: q.answer,
-          //     }));
-          //     setQuiz(formattedQuiz);
-          //     setLoadingMessage(null);
-          //   }
-          // }
-
-          // if (event.event === "on_quiz_result_stored") {
-          //   setQuiz(null);
-          // }
         },
         onerror: (err) => {
-          console.warn("⚠️ Stream error (resume):", err);
-
           controller.abort();
           set({ error: err.message || "Unknown error" });
           throw err;
@@ -518,7 +487,6 @@ const handleInterrupts = (name: string, config: {thread_id: string, checkpoint_i
       break;
   }
   get().addCheckpoint(config.thread_id, checkpoint);
-  console.log("checkpoint added for interrupt:", get().history);
 }
 
 export default useGraphHistoryStore;

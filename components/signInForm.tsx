@@ -4,13 +4,14 @@ import axiosInstance from "@/utils/axiosInstance";
 import { useRouter } from "next/navigation";
 import useUserStore from "@/state/user";
 import usePortalStore from "@/state/portal";
-import { access } from "fs";
+import { Loader2 } from "lucide-react";
 
 export default function SignInForm() {
   const router = useRouter();
   const close = usePortalStore((state) => state.closePortal);
   const setAuthToken = useUserStore((state) => state.setAccessToken);
   const setUser = useUserStore((state) => state.setUser);
+  const [loading, setLoading] = useState(false);
   
   const [formData, setFormData] = useState({
     username: "",
@@ -27,6 +28,7 @@ export default function SignInForm() {
 
   const logInHandler = async (e: any, formData: { username: string; password: string }) => {
     e.preventDefault();
+    setLoading(true);
     const data = new FormData();
     data.append("username", formData.username);
     data.append("password", formData.password);
@@ -48,6 +50,7 @@ export default function SignInForm() {
       setError(false);
     } catch (error) {
       setError(true);
+      setLoading(false);
     }
 };
 
@@ -75,9 +78,10 @@ export default function SignInForm() {
       )}
       <button
         type="submit"
+        disabled={loading}
         className="w-full py-3 border border-white text-white font-light text-sm tracking-widest uppercase hover:bg-white hover:text-black transition-all duration-300 ease-out active:scale-95 mt-6"
       >
-        Sign In
+        Sign In {loading ? <Loader2 className="inline-block ml-2 animate-spin" size={12} /> : null}
       </button>
     </form>
   );
