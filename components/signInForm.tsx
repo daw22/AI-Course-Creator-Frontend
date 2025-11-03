@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { use, useState } from "react";
 import axiosInstance from "@/utils/axiosInstance";
 import { useRouter } from "next/navigation";
 import useUserStore from "@/state/user";
@@ -10,6 +10,7 @@ export default function SignInForm() {
   const router = useRouter();
   const close = usePortalStore((state) => state.closePortal);
   const setAuthToken = useUserStore((state) => state.setAccessToken);
+  const setUser = useUserStore((state) => state.setUser);
   
   const [formData, setFormData] = useState({
     username: "",
@@ -29,7 +30,6 @@ export default function SignInForm() {
     const data = new FormData();
     data.append("username", formData.username);
     data.append("password", formData.password);
-    const setUser  = useUserStore.getState().setUser;
     try {
       const response = await axiosInstance.post("/auth/token", data);
       const profile = response.data.profile;
@@ -41,8 +41,6 @@ export default function SignInForm() {
         courses: profile.courses,
         accessToken: response.data.access_token
       });
-      // navigate to CreateCourse
-      router.push("/CreateCourse");
       // set auth token
       setAuthToken(response.data.access_token);
       //close modal

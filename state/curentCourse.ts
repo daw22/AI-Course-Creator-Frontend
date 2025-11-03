@@ -13,6 +13,7 @@ interface Subtopic {
 interface Chapter {
     chapter_title: string;
     chapter_order: number;
+    chapter_target: string;
     subtopics: Subtopic[];
     quiz?: [
         { question: string; options: string[], answer: number}
@@ -91,41 +92,51 @@ const useCurrentCourseStore = create<CourseState>((set, get) => ({
         }
         get().setWaitingForStream(false);
     },
-    addSubtopic: async () => {
+    addSubtopic: async (): Promise<void> => {
         const content_to_add = get().currentContent;
         const outline = get().course?.outline;
         const progress = get().course?.progress;
         if (!outline || !progress) return;
-        // get indexes
+
+        // resolve indices and adjust to 0-based subtopic index
         let chapterIndex = progress[0];
-        let subtopicIndex = progress[1];
-        if (subtopicIndex == 0) {
+        let subtopicIndex = progress[1] - 1; // adjust for 0 indexing
+        // what about [0, 0]?
+        if (subtopicIndex < 0 && chapterIndex > 0) {
             chapterIndex -= 1;
             subtopicIndex = outline[chapterIndex].subtopics.length - 1;
-        } else {
-            subtopicIndex -= 1;
         }
-        if (get().loadedChapters.length == 0 || get().loadedChapters[chapterIndex] == undefined) {
-            // Create a new chapter if it doesn't exist
+
+        // clone loaded chapters to update immutably
+        const loadedChapters = [...get().loadedChapters];
+
+        // ensure chapter exists at chapterIndex
+        if (!loadedChapters[chapterIndex]) {
             const newChapter = {
                 chapter_title: outline[chapterIndex].chapter_title,
                 chapter_order: chapterIndex,
                 chapter_target: outline[chapterIndex].chapter_target,
                 subtopics: []
             };
-            set({ loadedChapters: [...get().loadedChapters, newChapter] });
+            // make sure array has the chapter at the correct index
+            loadedChapters[chapterIndex] = newChapter;
         }
-        // push new subtopic
-        const loadedChapters = get().loadedChapters;
+
         const chapter = loadedChapters[chapterIndex];
         const newSubtopic: Subtopic = {
             title: outline[chapterIndex].subtopics[subtopicIndex].subtopic_title,
             content: content_to_add,
             summary: "",
-            order: subtopicIndex,
+            order: subtopicIndex > 0 ? subtopicIndex : 0,
         };
-        chapter.subtopics.push(newSubtopic);
-        loadedChapters[chapterIndex] = chapter;
+
+        const updatedChapter = {
+            ...chapter,
+            subtopics: [...(chapter.subtopics || []), newSubtopic]
+        };
+
+        loadedChapters[chapterIndex] = updatedChapter;
+
         set({ loadedChapters });
         console.log("updated loaded chapters:", get().loadedChapters);
     },

@@ -12,8 +12,10 @@ import {
 import useCurrentCourseStore from "@/state/curentCourse";
 import { Response } from "@/components/ai-elements/response";
 import useGraphHistoryStore from "@/state/graphHistory";
+import useProtection from "@/components/useProtection";
 
 export default function CourseViewerPage() {
+  useProtection();
   const [ready, setReady] = useState(false);
   const [indexOpen, setIndexOpen] = useState(true);
   const [darkMode, setDarkMode] = useState(true);
@@ -178,11 +180,11 @@ export default function CourseViewerPage() {
         </div>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto mt-[56px] flex justify-center items-start p-6">
+        <div className="flex-1 overflow-y-auto mt-[24px] flex justify-center items-start p-6">
           <div
             className={`${
               darkMode ? "bg-neutral-900 text-gray-100" : "bg-white text-gray-900"
-            } rounded-lg shadow-lg w-full max-w-3xl min-h-[80vh] p-6`}
+            } rounded-lg shadow-lg w-full max-w-4xl min-h-[80vh] p-6`}
           >
             {currentSubtopic === -1 ? (
               <div className="flex flex-col items-center justify-center h-full mt-24 prose max-w-none">

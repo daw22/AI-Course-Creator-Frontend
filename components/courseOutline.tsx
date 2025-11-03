@@ -18,6 +18,7 @@ export default function CourseOutline() {
   const resumeGraph = useGraphHistoryStore((state) => state.resumeGraph);
   const openPortal = usePortalStore((state) => state.openPortal);
   const setCourse = useCurrentCourseStore((state) => state.setCourse);
+  const resetCreationState = useCreationStore((state) => state.reset);
 
   const [continueClicked, setContinueClicked] = useState(false);
 
@@ -42,6 +43,7 @@ export default function CourseOutline() {
         console.log("saved course info:", course);
         router.push(`/CourseContent`);
       }, 500);
+      resetCreationState();
     }
     else {
       // show error toast

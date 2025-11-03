@@ -40,7 +40,7 @@ export default function HomePage() {
     },
   ];
   const toCreateCourse = () => {
-    if (user && !currentState) {
+    if (user) {
       router.push("/CreateCourse");
     } else {
       // open sign in modal
