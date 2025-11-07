@@ -6,6 +6,7 @@ axios.defaults.withCredentials = true; // Ensure cookies are sent with requests
 const axiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
   timeout: 5000,
+  withCredentials: true,
 });
 
 
