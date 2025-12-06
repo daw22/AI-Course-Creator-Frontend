@@ -106,7 +106,7 @@ export default function NavBar() {
       {isOpen && (
         <div className="md:hidden bg-[#111]/90 text-center py-4 space-y-3">
           <Link
-            href="/my-courses"
+            href="/MyCourses"
             onClick={() => setIsOpen(false)}
             className="block hover:text-blue-400 transition"
           >
@@ -115,7 +115,7 @@ export default function NavBar() {
 
           {user ? (
             <button
-              onClick={() => setIsOpen(false)}
+              onClick={() => {setIsOpen(false); handleSignOut();}}
               className="block w-full hover:text-blue-400 transition"
             >
               Sign out
@@ -123,7 +123,7 @@ export default function NavBar() {
           ) : (
             <Link
               href="/signin"
-              onClick={() => setIsOpen(false)}
+              onClick={() => {setIsOpen(false); open("signIn");}}
               className="block hover:text-blue-400 transition"
             >
               Sign in
