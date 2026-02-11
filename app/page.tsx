@@ -52,7 +52,7 @@ export default function HomePage() {
       {/* Hero Section */}
       <section className="min-h-screen flex items-center justify-center px-4 pt-20 pb-20">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-light leading-tight mb-6">
+          <h1 className="text-4xl sm:text-3xl md:text-4xl lg:text-5xl font-light leading-tight mb-6">
             Create AI-Powered Courses Tailored to Your Level
           </h1>
           <p className="text-lg sm:text-xl text-gray-400 mb-12 max-w-2xl mx-auto font-light">
